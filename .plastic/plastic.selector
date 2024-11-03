@@ -1,0 +1,4 @@
+repository "HotPotForEveryone@linh_23@cloud"
+  path "/"
+    br "/main"
+    co "/main"
