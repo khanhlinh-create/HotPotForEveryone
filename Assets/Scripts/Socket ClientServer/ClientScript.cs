@@ -20,7 +20,7 @@ public class ClientScript : MonoBehaviour
             client = new TcpClient("127.0.0.1", 7777);
             stream = client.GetStream();
             isConnected = true;
-            Debug.Log("Connected to server.");
+            Debug.Log(gameObject.name + "Connected to server.");
         }
         catch (SocketException ex)
         {
@@ -33,7 +33,7 @@ public class ClientScript : MonoBehaviour
         if (stream == null) return;
         byte[] data = Encoding.ASCII.GetBytes(message);
         stream.Write(data, 0, data.Length);
-        Debug.Log("Data sent: " + message);
+        Debug.Log(gameObject.name + " sent: " + message);
     }
 
     public void ReceiveData()
@@ -41,7 +41,7 @@ public class ClientScript : MonoBehaviour
         byte[] buffer = new byte[1024];
         int bytesRead = stream.Read(buffer, 0, buffer.Length);
         string dataReceived = Encoding.ASCII.GetString(buffer, 0, bytesRead);
-        Debug.Log("Data received from server: " + dataReceived);
+        Debug.Log(gameObject.name + " received: " + dataReceived);
     }
 
     void OnApplicationQuit()
