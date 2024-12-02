@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 9647013087fd1de43af4689f1e7700b9
+guid: c9c796e07404f7545851dfd8bdfe6cc4
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 1264580289590490852
-    second: 7158756-ai (1)_0
+      213: 2721858481288057231
+    second: dauhu_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -113,13 +113,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: 7158756-ai (1)_0
+      name: dauhu_0
       rect:
         serializedVersion: 2
-        x: 8
-        y: 10
-        width: 427
-        height: 211
+        x: 117
+        y: 76
+        width: 194
+        height: 217
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -128,8 +128,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 4e67007c211bc8110800000000000000
-      internalID: 1264580289590490852
+      spriteID: f811f022edbf5c520800000000000000
+      internalID: 2721858481288057231
       vertices: []
       indices: 
       edges: []
@@ -147,8 +147,7 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable:
-      7158756-ai (1)_0: 1264580289590490852
+    nameFileIdTable: {}
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
