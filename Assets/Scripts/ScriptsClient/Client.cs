@@ -12,11 +12,15 @@ public class Client : MonoBehaviour
 
     public static Client Instance; // Singleton pattern
 
-    public string serverIP = "127.0.0.1";
     public int serverPort = 7777;
+
 
     private void Awake()
     {
+        if (transform.parent != null)
+        {
+            transform.parent = null; // Tách khỏi GameObject cha
+        }
         if (Instance == null)
         {
             Instance = this;
@@ -26,17 +30,30 @@ public class Client : MonoBehaviour
         {
             Destroy(this.gameObject);
         }
+        if (RoomHandler.Instance == null)
+        {
+            GameObject roomHandlerObject = new GameObject("RoomHandler");
+            roomHandlerObject.AddComponent<RoomHandler>();
+        }
+
+
     }
 
-    public void ConnectToServer()
+    // Hàm khởi tạo tùy chỉnh, chỉ được gọi khi kích hoạt ClientObjects
+    public void InitializeClient()
+    {
+        Debug.Log("Client started.");
+    }
+
+    public void Connect(string ipAddress)
     {
         socket = new TcpClient();
         try
         {
-            socket.Connect(serverIP, serverPort);
+            socket.Connect(ipAddress, serverPort);
             stream = socket.GetStream();
             receiveBuffer = new byte[4096];
-            Debug.Log("Connected to server.");
+            Debug.Log("Connecting to server at: " + ipAddress);
             stream.BeginRead(receiveBuffer, 0, receiveBuffer.Length, ReceiveCallback, null);
         }
         catch (Exception ex)
@@ -64,14 +81,19 @@ public class Client : MonoBehaviour
             int byteLength = stream.EndRead(result);
             if (byteLength <= 0)
             {
-                Disconnect();
+                Debug.LogWarning("Server stream ended. Waiting for reconnection...");
                 return;
             }
 
             string data = Encoding.ASCII.GetString(receiveBuffer, 0, byteLength);
             Debug.Log($"Data received: {data}");
-            HandleServerResponse(data);
+            // Xử lý phản hồi từ server
+            if (!string.IsNullOrEmpty(data))
+            {
+                HandleServerResponse(data);
+            }
 
+            // Tiếp tục đọc dữ liệu
             stream.BeginRead(receiveBuffer, 0, receiveBuffer.Length, ReceiveCallback, null);
         }
         catch (Exception ex)
@@ -83,8 +105,21 @@ public class Client : MonoBehaviour
 
     private void HandleServerResponse(string data)
     {
+        if (RoomHandler.Instance != null)
+        {
+            RoomHandler.Instance.HandleServerMessage(data);
+        }
+        else
+        {
+            Debug.LogWarning("RoomHandler.Instance is null. Cannot forward server response.");
+        }
         // Forward data to RoomHandler or other systems
         RoomHandler.Instance.HandleServerMessage(data);
+    }
+
+    public bool IsConnected()
+    {
+        return socket != null && socket.Connected;
     }
 
     private void Disconnect()
@@ -95,11 +130,6 @@ public class Client : MonoBehaviour
         Debug.Log("Disconnected from server.");
     }
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        
-    }
 
     // Update is called once per frame
     void Update()

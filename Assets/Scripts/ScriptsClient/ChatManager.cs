@@ -1,4 +1,4 @@
-using UnityEngine;
+Ôªøusing UnityEngine;
 
 public class ChatManager : MonoBehaviour
 {
@@ -6,10 +6,14 @@ public class ChatManager : MonoBehaviour
     {
         if (FindObjectsByType<ChatManager>(FindObjectsSortMode.None).Length > 1)
         {
-            Destroy(this.gameObject); // XÛa n?u ?„ t?n t?i
+            Destroy(this.gameObject); // X√≥a n?u ?√£ t?n t?i
             return;
         }
-        DontDestroyOnLoad(this.gameObject); // KhÙng xÛa khi chuy?n scene
+        if (transform.parent != null)
+        {
+            transform.parent = null; // T√°ch kh·ªèi GameObject cha
+        }
+        DontDestroyOnLoad(this.gameObject); // Kh√¥ng x√≥a khi chuy?n scene
     }
 
     public void SendMessageToRoom(string message)
