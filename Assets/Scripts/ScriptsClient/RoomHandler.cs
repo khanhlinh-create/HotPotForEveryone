@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using TMPro; // TextMeshPro for UI handling
 
 public class RoomHandler : MonoBehaviour
 {
@@ -14,43 +15,64 @@ public class RoomHandler : MonoBehaviour
             Destroy(this.gameObject); // Xóa nếu đã tồn tại
             return;
         }
+        if (transform.parent != null)
+        {
+            transform.parent = null; // Tách khỏi GameObject cha
+        }
         DontDestroyOnLoad(this.gameObject); // Không xóa khi chuyển scene
     }
 
+    // Tạo phòng
     public void CreateRoom()
     {
-        Client.Instance.SendData("CreateRoom");
+        Debug.Log("Đang tạo phòng...");
+        Client.Instance.SendData("CreateRoom"); // Gửi yêu cầu tạo phòng tới server
     }
 
-    public void JoinRoom(string code)
+    // Tham gia phòng
+    public void JoinRoom(string inputRoomCode)
     {
-        roomCode = code;
-        Client.Instance.SendData($"JoinRoom:{code}");
+        if (string.IsNullOrEmpty(inputRoomCode))
+        {
+            Debug.LogWarning("Vui lòng nhập mã phòng!"); // Nếu chưa nhập mã phòng
+            return;
+        }
+
+        Debug.Log($"Đang gửi yêu cầu vào phòng với mã: {inputRoomCode}"); // Gửi yêu cầu vào phòng
+        Client.Instance.SendData($"JoinRoom|{inputRoomCode}");
     }
 
+    // Xử lý phản hồi từ server
     public void HandleServerMessage(string message)
     {
-        if (message.StartsWith("RoomCreated"))
+        string[] parts = message.Split('|');
+        string command = parts[0];
+        string data = parts.Length > 1 ? parts[1] : "";
+
+        switch (command)
         {
-            roomCode = message.Split(':')[1];
-            Debug.Log($"Room created with code: {roomCode}");
-        }
-        else if (message.StartsWith("JoinedRoom"))
-        {
-            Debug.Log($"Joined room: {roomCode}");
-        }
-        else if (message.StartsWith("RoomUpdate"))
-        {
-            Debug.Log("Room updated with data.");
-            // Parse room data and update UI
+            case "RoomCreated":
+                Debug.Log($"Phòng được tạo thành công! Mã phòng: {data}");
+                break;
+
+            case "RoomNotFound":
+                Debug.LogWarning("Không thể vào phòng: Mã phòng không tồn tại!");
+                break;
+
+            case "RoomFull":
+                Debug.LogWarning("Không thể vào phòng: Phòng đã đủ người!");
+                break;
+
+            case "JoinedRoom":
+                Debug.Log($"Thành công! Bạn đã tham gia phòng có mã: {data}");
+                break;
+
+            default:
+                Debug.LogError("Lỗi không xác định khi xử lý phản hồi từ server.");
+                break;
         }
     }
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        
-    }
 
     // Update is called once per frame
     void Update()

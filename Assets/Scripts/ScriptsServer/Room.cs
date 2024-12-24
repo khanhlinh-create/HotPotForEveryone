@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Room
 {
-    private int roomID;
+    private string roomID;
     private List<TcpClient> players = new List<TcpClient>();
     private const int MaxPlayers = 3;
 
@@ -12,7 +12,7 @@ public class Room
     private string hotPotState = "Empty"; // Trạng thái nồi lẩu
     private List<string> chatLog = new List<string>();
 
-    public Room(int id)
+    public Room(string id)
     {
         roomID = id;
     }
