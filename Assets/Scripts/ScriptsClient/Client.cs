@@ -34,6 +34,7 @@ public class Client : MonoBehaviour
         {
             GameObject roomHandlerObject = new GameObject("RoomHandler");
             roomHandlerObject.AddComponent<RoomHandler>();
+            DontDestroyOnLoad(roomHandlerObject); // Đảm bảo RoomHandler không bị xóa khi chuyển scene
         }
 
 

@@ -119,13 +119,24 @@ public class ServerManager : MonoBehaviour
             rooms.Add(roomCode, newRoom);
             newRoom.AddPlayer(client);
 
-            Debug.Log($"Room {roomCode} created.");
+            Debug.Log($"Phòng có mã {roomCode} đã được tạo.");
             SendToClient(client, $"RoomCreated|{roomCode}");
+        }
+        else
+        {
+            Debug.LogWarning($"Room code {roomCode} already exists!");
         }
     }
 
     private void JoinRoom(TcpClient client, string roomCode)
     {
+        if (string.IsNullOrEmpty(roomCode))
+        {
+            SendToClient(client, "Error|RoomCodeEmpty");
+            Debug.LogWarning("Client attempted to join with an empty room code.");
+            return;
+        }
+
         if (rooms.TryGetValue(roomCode, out Room room))
         {
             if (room.HasSpace())
@@ -137,11 +148,13 @@ public class ServerManager : MonoBehaviour
             else
             {
                 SendToClient(client, "RoomFull");
+                Debug.LogWarning($"Room {roomCode} is full.");
             }
         }
         else
         {
             SendToClient(client, "RoomNotFound");
+            Debug.LogWarning($"Room {roomCode} does not exist.");
         }
     }
 

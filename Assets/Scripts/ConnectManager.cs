@@ -10,6 +10,7 @@ public class ConnectManager : MonoBehaviour
 
     void Start()
     {
+        DontDestroyOnLoad(gameObject); // Giữ ConnectionManager khi chuyển scene
         // Gắn sự kiện click vào nút Play
         playButton.onClick.AddListener(() => ConnectToServer(ipInputField.text));
     }
@@ -26,4 +27,23 @@ public class ConnectManager : MonoBehaviour
             Debug.LogError("Client script is not assigned!");
         }
     }
+
+    public void JoinRoom(string roomCode)
+    {
+        if (string.IsNullOrEmpty(roomCode))
+        {
+            Debug.LogWarning("Room code không thể để trống!");
+            return;
+        }
+
+        if (clientScript != null && clientScript.IsConnected())
+        {
+            clientScript.SendData($"Vào phòng có mã là|{roomCode}");
+        }
+        else
+        {
+            Debug.LogWarning("Client không thể kết nối đến server.");
+        }
+    }
+
 }
