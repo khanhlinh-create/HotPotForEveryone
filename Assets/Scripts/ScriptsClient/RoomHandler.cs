@@ -53,6 +53,7 @@ public class RoomHandler : MonoBehaviour
         {
             case "RoomCreated":
                 Debug.Log($"Phòng được tạo thành công! Mã phòng: {data}");
+                roomCode = data; // Lưu mã phòng vào biến toàn cục nếu cần
                 break;
 
             case "RoomNotFound":
