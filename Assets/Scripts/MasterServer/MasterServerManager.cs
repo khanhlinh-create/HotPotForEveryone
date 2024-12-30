@@ -14,6 +14,11 @@ public class MasterServerManager : MonoBehaviour
     public int port = 5000; // Cổng của Master Server
     private TcpListener listener;
 
+    private void Awake()
+    {
+        DontDestroyOnLoad(gameObject);
+    }
+
     void Start()
     {
         StartMasterServer(port);

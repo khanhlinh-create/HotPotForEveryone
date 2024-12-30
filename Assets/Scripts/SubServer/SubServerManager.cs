@@ -23,6 +23,11 @@ public class SubServerManager : MonoBehaviour
         StartSubServer(subServerPort);
     }
 
+    private void Awake()
+    {
+        DontDestroyOnLoad(gameObject);
+    }
+
     private void RegisterToMasterServer()
     {
         try
