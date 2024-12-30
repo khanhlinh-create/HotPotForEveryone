@@ -26,7 +26,7 @@ public class ConnectionManager : MonoBehaviour
 
         try
         {
-            await masterClient.ConnectAsync(masterServerIP, 8080);
+            await masterClient.ConnectAsync(masterServerIP, 5000);
             NetworkStream stream = masterClient.GetStream();
 
             byte[] buffer = new byte[1024];
