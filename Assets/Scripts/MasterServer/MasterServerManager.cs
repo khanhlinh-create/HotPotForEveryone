@@ -10,7 +10,7 @@ public class MasterServerManager : MonoBehaviour
 {
     private List<SubServerInfo> subServers = new List<SubServerInfo>();
     private int lastAssignedIndex = -1;
-
+    private bool isServerRunning = false;
     public int port = 5000; // Cổng của Master Server
     private TcpListener listener;
 
@@ -21,16 +21,18 @@ public class MasterServerManager : MonoBehaviour
 
     void Start()
     {
-        StartMasterServer(port);
+       
     }
 
     public void StartMasterServer(int port)
     {
+        if (isServerRunning) return; // Đảm bảo không khởi động lại nếu đã chạy
+        isServerRunning = true;
+
         listener = new TcpListener(IPAddress.Any, port);
         listener.Start();
         Debug.Log($"Master Server started on port {port}.");
 
-        // Lắng nghe kết nối từ SubServer và Client trên một luồng riêng
         Thread listenerThread = new Thread(ListenForConnections);
         listenerThread.Start();
     }

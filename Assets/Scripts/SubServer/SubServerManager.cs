@@ -9,7 +9,7 @@ using System.Threading;
 public class SubServerManager : MonoBehaviour
 {
     private TcpListener server;
-    private bool isRunning;
+    private bool isServerRunning = false;
     private List<Room> rooms = new List<Room>();
     private Dictionary<string, string> globalGameState = new Dictionary<string, string>(); // Trạng thái toàn cục (VD: nồi lẩu và đĩa ăn)
 
@@ -19,8 +19,7 @@ public class SubServerManager : MonoBehaviour
 
     void Start()
     {
-        RegisterToMasterServer();
-        StartSubServer(subServerPort);
+        
     }
 
     private void Awake()
@@ -49,21 +48,22 @@ public class SubServerManager : MonoBehaviour
 
     private void StartSubServer(int port)
     {
+        if (isServerRunning) return; // Đảm bảo không khởi động lại nếu đã chạy
+        isServerRunning = true;
+        RegisterToMasterServer();
         server = new TcpListener(IPAddress.Any, port);
         server.Start();
-        isRunning = true;
+        isServerRunning = true;
 
-        // Lắng nghe kết nối từ Client trên một luồng riêng
         Thread serverThread = new Thread(ListenForClients);
         serverThread.Start();
-
         Debug.Log($"SubServer started on port {port}.");
     }
 
 
     private void ListenForClients()
     {
-        while (isRunning)
+        while (isServerRunning)
         {
             try
             {
@@ -173,7 +173,7 @@ public class SubServerManager : MonoBehaviour
 
     void OnApplicationQuit()
     {
-        isRunning = false;
+        isServerRunning = false;
         server.Stop();
         Debug.Log("SubServer stopped.");
     }

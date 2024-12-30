@@ -5,6 +5,11 @@ public class ModeSelectionManager : MonoBehaviour
     public GameObject masterServerManager; // Gắn Prefab hoặc GameObject chứa script MasterServerManager
     public GameObject subServerManager;   // Gắn Prefab hoặc GameObject chứa script SubServerManager
 
+    private void Awake()
+    {
+        DontDestroyOnLoad(gameObject);
+    }
+
     private void Start()
     {
         // Đảm bảo tất cả các chế độ tắt ban đầu
