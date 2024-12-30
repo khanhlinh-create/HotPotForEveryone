@@ -8,10 +8,21 @@ public class DragAndDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler
 {
     [SerializeField] private Canvas canvas;
 
+    AudioManager instance;
+
     private RectTransform rectTransform;
     private CanvasGroup canvasGroup;
     private Vector2 originalPosition;
     public TextMeshProUGUI yumText;
+    public string itemName; // Tên của món ăn
+    private ConnectionManager connectionManager;
+
+
+    private void Start()
+    {
+        AudioManager.instance.PlayMusic("HotpotSound");
+        connectionManager = FindFirstObjectByType<ConnectionManager>();
+    }
 
     private void Awake()
     {
@@ -31,6 +42,7 @@ public class DragAndDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler
         originalPosition = GetComponent<RectTransform>().anchoredPosition;
         canvasGroup.alpha = .6f;
         canvasGroup.blocksRaycasts = false;
+        AudioManager.instance.PlaySFX("PickupSound");
     }
 
     public void OnEndDrag(PointerEventData eventData)
@@ -44,6 +56,7 @@ public class DragAndDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler
         {
             Debug.Log("Dropped into ItemsSlot");
             StartCoroutine(DisableDragTemporarily(5f));
+            AudioManager.instance.PlaySFX("DropSound");
         }
         else
         {
@@ -54,6 +67,7 @@ public class DragAndDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler
         if (hoveredObject != null && hoveredObject.GetComponent<Eat>() != null)
         {
             Debug.Log("Dropped into Bowl");
+            AudioManager.instance.PlaySFX("EatingSound");
 
             /*if (yumText != null)
             {
@@ -66,6 +80,9 @@ public class DragAndDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler
         {
             Debug.Log("Not dropped into Bowl");
         }
+        Debug.Log($"Item {itemName} dropped!");
+        string gameStateUpdate = $"Item:{itemName}|State:Dropped";
+        connectionManager.SendGameStateUpdate(gameStateUpdate); // Gửi tới SubServer
     }
 
     public void OnPointerDown(PointerEventData eventData)

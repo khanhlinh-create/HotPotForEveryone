@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 3f0a57c8876b00b45a9f4062da298a20
+guid: ec7121731c092f04e9455a5bc0a95243
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 5839820706974066888
-    second: cross_0
+      213: 4313759512269738903
+    second: Khong_Co_Tieu_e199_20241230030643_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -113,13 +113,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: cross_0
+      name: Khong_Co_Tieu_e199_20241230030643_0
       rect:
         serializedVersion: 2
-        x: 199
-        y: 199
-        width: 802
-        height: 802
+        x: 81
+        y: 17
+        width: 309
+        height: 313
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -128,8 +128,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 8c8e8270ef53b0150800000000000000
-      internalID: 5839820706974066888
+      spriteID: 793dc4fcb6d8ddb30800000000000000
+      internalID: 4313759512269738903
       vertices: []
       indices: 
       edges: []
@@ -148,7 +148,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      cross_0: 5839820706974066888
+      Khong_Co_Tieu_e199_20241230030643_0: 4313759512269738903
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
