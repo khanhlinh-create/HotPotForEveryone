@@ -13,19 +13,48 @@ public class SubServerManager : MonoBehaviour
     private List<Room> rooms = new List<Room>();
     private Dictionary<string, string> globalGameState = new Dictionary<string, string>(); // Trạng thái toàn cục (VD: nồi lẩu và đĩa ăn)
 
+    public string masterServerIP = "127.0.0.1"; // Địa chỉ IP của Master Server
+    public int masterServerPort = 5000;        // Cổng của Master Server
+    public int subServerPort = 6000;           // Cổng của SubServer này
+
     void Start()
     {
-        // Khởi tạo TcpListener tại một cổng cố định (VD: 12345)
-        server = new TcpListener(IPAddress.Any, 12345);
+        RegisterToMasterServer();
+        StartSubServer(subServerPort);
+    }
+
+    private void RegisterToMasterServer()
+    {
+        try
+        {
+            TcpClient masterClient = new TcpClient(masterServerIP, masterServerPort);
+            NetworkStream stream = masterClient.GetStream();
+            string registerMessage = $"RegisterSubServer|{GetLocalIPAddress()}|{subServerPort}";
+            byte[] data = Encoding.UTF8.GetBytes(registerMessage);
+            stream.Write(data, 0, data.Length);
+            masterClient.Close();
+
+            Debug.Log("SubServer registered with Master Server.");
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"Error registering SubServer: {ex.Message}");
+        }
+    }
+
+    private void StartSubServer(int port)
+    {
+        server = new TcpListener(IPAddress.Any, port);
         server.Start();
         isRunning = true;
 
-        // Bắt đầu lắng nghe kết nối trên một luồng riêng
+        // Lắng nghe kết nối từ Client trên một luồng riêng
         Thread serverThread = new Thread(ListenForClients);
         serverThread.Start();
 
-        Debug.Log("SubServer is running and listening for clients...");
+        Debug.Log($"SubServer started on port {port}.");
     }
+
 
     private void ListenForClients()
     {
@@ -53,27 +82,53 @@ public class SubServerManager : MonoBehaviour
         NetworkStream stream = client.GetStream();
         byte[] buffer = new byte[1024];
 
-        int bytesRead = stream.Read(buffer, 0, buffer.Length);
-        string message = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-        string[] command = message.Split('|');
+        while (true)
+        {
+            try
+            {
+                int bytesRead = stream.Read(buffer, 0, buffer.Length);
+                if (bytesRead == 0) break;
 
-        if (command[0] == "CreateRoom")
-        {
-            string roomID = command[1];
-            CreateRoom(roomID, client);
+                string message = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+                string[] command = message.Split('|');
+
+                if (command[0] == "CreateRoom")
+                {
+                    string roomID = command[1];
+                    CreateRoom(roomID, client);
+                }
+                else if (command[0] == "JoinRoom")
+                {
+                    string roomID = command[1];
+                    JoinRoom(roomID, client);
+                }
+                else if (command[0] == "UpdateState")
+                {
+                    string roomID = command[1];
+                    string key = command[2];
+                    string value = command[3];
+                    UpdateRoomState(roomID, key, value);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Error handling client: {ex.Message}");
+                break;
+            }
         }
-        else if (command[0] == "JoinRoom")
+    }
+
+    private string GetLocalIPAddress()
+    {
+        var host = Dns.GetHostEntry(Dns.GetHostName());
+        foreach (var ip in host.AddressList)
         {
-            string roomID = command[1];
-            JoinRoom(roomID, client);
+            if (ip.AddressFamily == AddressFamily.InterNetwork)
+            {
+                return ip.ToString();
+            }
         }
-        else if (command[0] == "UpdateState")
-        {
-            string roomID = command[1];
-            string key = command[2];
-            string value = command[3];
-            UpdateRoomState(roomID, key, value);
-        }
+        throw new Exception("No network adapters with an IPv4 address in the system!");
     }
 
     private void CreateRoom(string roomID, TcpClient client)

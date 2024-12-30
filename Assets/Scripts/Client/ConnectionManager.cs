@@ -19,32 +19,38 @@ public class ConnectionManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
-    public void ConnectToMasterServer()
+    public async void ConnectToMasterServer()
     {
-        string masterServerIP = IP_InputField.text; // Lấy IP từ TMP_InputField.
+        string masterServerIP = IP_InputField.text.Trim();
         TcpClient masterClient = new TcpClient();
+
         try
         {
-            masterClient.Connect(masterServerIP, 8080);
-
+            await masterClient.ConnectAsync(masterServerIP, 8080);
             NetworkStream stream = masterClient.GetStream();
+
             byte[] buffer = new byte[1024];
-            int bytesRead = stream.Read(buffer, 0, buffer.Length);
+            int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
 
-            string serverInfo = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-            ParseServerInfo(serverInfo);
-
-            Debug.Log($"Connected to Master Server: {masterServerIP}");
+            if (bytesRead > 0)
+            {
+                string serverInfo = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+                ParseServerInfo(serverInfo);
+                Debug.Log($"Connected to Master Server: {masterServerIP}");
+            }
+            else
+            {
+                throw new Exception("No data received from Master Server.");
+            }
 
             masterClient.Close();
 
-            // Kết nối tới SubServer
             ConnectToSubServer();
         }
-        catch (SocketException ex)
+        catch (Exception ex)
         {
             Debug.LogError($"Failed to connect to Master Server: {ex.Message}");
-            ShowErrorToUser("Failed to connect to Master Server. Please try again.");
+            ShowErrorToUser("Cannot connect to Master Server. Check IP or try again.");
         }
     }
 
@@ -54,9 +60,9 @@ public class ConnectionManager : MonoBehaviour
         foreach (string entry in info)
         {
             if (entry.StartsWith("ServerIP:"))
-                subServerIP = entry.Replace("ServerIP:", "");
+                subServerIP = entry.Replace("ServerIP:", "").Trim();
             if (entry.StartsWith("ServerPort:"))
-                subServerPort = int.Parse(entry.Replace("ServerPort:", ""));
+                subServerPort = int.Parse(entry.Replace("ServerPort:", "").Trim());
         }
     }
 
@@ -64,12 +70,13 @@ public class ConnectionManager : MonoBehaviour
     {
         try
         {
-            subServerClient = new TcpClient(); // Gán vào biến static
-            subServerClient.Connect(subServerIP, subServerPort);
+            subServerClient = new TcpClient();
+            await subServerClient.ConnectAsync(subServerIP, subServerPort);
+
             Debug.Log($"Connected to SubServer at {subServerIP}:{subServerPort}");
             await StartReceivingData();
         }
-        catch (SocketException ex)
+        catch (Exception ex)
         {
             Debug.LogError($"Failed to connect to SubServer: {ex.Message}");
             ReconnectToSubServer();
@@ -94,14 +101,26 @@ public class ConnectionManager : MonoBehaviour
 
                 string receivedData = Encoding.UTF8.GetString(buffer, 0, bytesRead);
                 Debug.Log($"Received from SubServer: {receivedData}");
-
-                UpdateGameState(receivedData);
+                HandleReceivedData(receivedData);
             }
             catch (Exception ex)
             {
                 Debug.LogError($"Error receiving data: {ex.Message}");
                 break;
             }
+        }
+    }
+
+    private void HandleReceivedData(string data)
+    {
+        // Phân loại dữ liệu và chuyển tới các script khác
+        if (data.StartsWith("Room"))
+        {
+            FindFirstObjectByType<RoomManager>()?.HandleRoomResponse(data);
+        }
+        else
+        {
+            UpdateGameState(data);
         }
     }
 

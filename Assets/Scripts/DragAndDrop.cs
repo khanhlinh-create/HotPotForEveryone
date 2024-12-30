@@ -3,6 +3,8 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using System.Collections;
 using TMPro;
+using System.Net.Sockets;
+using System.Text;
 
 public class DragAndDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, IEndDragHandler, IDragHandler, IDropHandler
 {
@@ -21,13 +23,13 @@ public class DragAndDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler
     private void Start()
     {
         AudioManager.instance.PlayMusic("HotpotSound");
-        connectionManager = FindFirstObjectByType<ConnectionManager>();
     }
 
     private void Awake()
     {
         rectTransform = GetComponent<RectTransform>();
         canvasGroup = GetComponent<CanvasGroup>();
+        connectionManager = FindFirstObjectByType<ConnectionManager>();
     }
 
     public void OnDrag(PointerEventData eventData)
@@ -40,7 +42,7 @@ public class DragAndDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler
     {
         Debug.Log("OnBeginDrag");
         originalPosition = GetComponent<RectTransform>().anchoredPosition;
-        canvasGroup.alpha = .6f;
+        canvasGroup.alpha = 0.6f;
         canvasGroup.blocksRaycasts = false;
         AudioManager.instance.PlaySFX("PickupSound");
     }
@@ -83,6 +85,9 @@ public class DragAndDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler
         Debug.Log($"Item {itemName} dropped!");
         string gameStateUpdate = $"Item:{itemName}|State:Dropped";
         connectionManager.SendGameStateUpdate(gameStateUpdate); // Gửi tới SubServer
+        // Gửi dữ liệu đến SubServer
+        Vector2 position = rectTransform.anchoredPosition;
+        SendDragDataToSubServer(itemName, position);
     }
 
     public void OnPointerDown(PointerEventData eventData)
@@ -92,6 +97,8 @@ public class DragAndDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler
 
     public void OnDrop(PointerEventData eventData)
     {
+        string stateUpdate = $"UpdateState|RoomID|{name}|Dropped";
+        connectionManager.SendGameStateUpdate(stateUpdate);
 
     }
 
@@ -153,5 +160,21 @@ public class DragAndDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler
         yumText.gameObject.SetActive(true);
         yield return new WaitForSeconds(1f);
         yumText.gameObject.SetActive(false);
+    }
+
+    private void SendDragDataToSubServer(string itemName, Vector2 position)
+    {
+        if (ConnectionManager.subServerClient != null && ConnectionManager.subServerClient.Connected)
+        {
+            string message = $"Drag|{itemName}|{position.x}|{position.y}";
+            NetworkStream stream = ConnectionManager.subServerClient.GetStream();
+            byte[] data = Encoding.UTF8.GetBytes(message);
+            stream.Write(data, 0, data.Length);
+            Debug.Log($"Sent drag data to SubServer: {message}");
+        }
+        else
+        {
+            Debug.LogError("Not connected to SubServer. Cannot send drag data.");
+        }
     }
 }

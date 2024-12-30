@@ -52,4 +52,26 @@ public class RoomManager : MonoBehaviour
             Debug.LogError($"Error sending message to SubServer: {ex.Message}");
         }
     }
+
+    public void HandleRoomResponse(string response)
+    {
+        Debug.Log($"RoomManager received response: {response}");
+        if (response.StartsWith("RoomCreated"))
+        {
+            string roomName = response.Split('|')[1];
+            Debug.Log($"Room '{roomName}' created successfully.");
+            // Cập nhật UI hoặc chuyển scene
+        }
+        else if (response.StartsWith("RoomJoined"))
+        {
+            string roomName = response.Split('|')[1];
+            Debug.Log($"Joined room '{roomName}' successfully.");
+            // Cập nhật UI hoặc chuyển scene
+        }
+        else if (response.StartsWith("RoomError"))
+        {
+            Debug.LogError($"Room error: {response}");
+            // Hiển thị lỗi lên UI
+        }
+    }
 }
