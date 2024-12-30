@@ -14,10 +14,14 @@ public class DragAndDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler
     private CanvasGroup canvasGroup;
     private Vector2 originalPosition;
     public TextMeshProUGUI yumText;
+    public string itemName; // Tên của món ăn
+    private ConnectionManager connectionManager;
+
 
     private void Start()
     {
         AudioManager.instance.PlayMusic("HotpotSound");
+        connectionManager = FindFirstObjectByType<ConnectionManager>();
     }
 
     private void Awake()
@@ -76,6 +80,9 @@ public class DragAndDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler
         {
             Debug.Log("Not dropped into Bowl");
         }
+        Debug.Log($"Item {itemName} dropped!");
+        string gameStateUpdate = $"Item:{itemName}|State:Dropped";
+        connectionManager.SendGameStateUpdate(gameStateUpdate); // Gửi tới SubServer
     }
 
     public void OnPointerDown(PointerEventData eventData)
