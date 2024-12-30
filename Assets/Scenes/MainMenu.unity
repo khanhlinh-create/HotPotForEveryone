@@ -6874,7 +6874,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 01c4a3875dd74694ca530c9d26a19c59, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  IP_InputField: {fileID: 0}
+  IP_InputField: {fileID: 533384089}
 --- !u!1 &1726319653
 GameObject:
   m_ObjectHideFlags: 0
