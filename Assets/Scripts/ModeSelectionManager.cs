@@ -25,6 +25,12 @@ public class ModeSelectionManager : MonoBehaviour
             masterServerManager.SetActive(true); // Bật MasterServerManager
             Debug.Log("MasterServer mode activated.");
         }
+
+        // Đảm bảo SubServer không chạy
+        if (subServerManager)
+        {
+            subServerManager.SetActive(false);
+        }
     }
 
     // Gọi khi nhấn button SubServer
@@ -34,6 +40,12 @@ public class ModeSelectionManager : MonoBehaviour
         {
             subServerManager.SetActive(true); // Bật SubServerManager
             Debug.Log("SubServer mode activated.");
+        }
+
+        // Đảm bảo MasterServer không chạy
+        if (masterServerManager)
+        {
+            masterServerManager.SetActive(false);
         }
     }
 }

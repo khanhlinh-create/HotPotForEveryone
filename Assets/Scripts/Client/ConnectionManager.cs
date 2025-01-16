@@ -9,10 +9,13 @@ using System.Threading.Tasks;
 public class ConnectionManager : MonoBehaviour
 {
     public TMP_InputField IP_InputField;
+    public Button PlayButton;            // Nút Play
+    public static TcpClient masterClient; // Kết nối đến MasterServer
+    public static TcpClient subServerClient; // Kết nối đến SubServer (sử dụng ở scene 3)
 
-    private string subServerIP;
-    private int subServerPort;
-    public static TcpClient subServerClient; // Kết nối với SubServer (static)
+    private string masterServerIP;   // IP của MasterServer
+    private string subServerIP;     // Biến toàn cục để lưu IP của SubServer
+    private int subServerPort;      // Biến toàn cục để lưu Port của SubServer
 
     private void Awake()
     {
@@ -21,31 +24,13 @@ public class ConnectionManager : MonoBehaviour
 
     public async void ConnectToMasterServer()
     {
-        string masterServerIP = IP_InputField.text.Trim();
-        TcpClient masterClient = new TcpClient();
+        masterServerIP = IP_InputField.text.Trim();
+        masterClient = new TcpClient();
 
         try
         {
             await masterClient.ConnectAsync(masterServerIP, 5000);
-            NetworkStream stream = masterClient.GetStream();
-
-            byte[] buffer = new byte[1024];
-            int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
-
-            if (bytesRead > 0)
-            {
-                string serverInfo = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-                ParseServerInfo(serverInfo);
-                Debug.Log($"Connected to Master Server: {masterServerIP}");
-            }
-            else
-            {
-                throw new Exception("No data received from Master Server.");
-            }
-
-            masterClient.Close();
-
-            ConnectToSubServer();
+            Debug.Log($"Connected to Master Server at {masterServerIP}");
         }
         catch (Exception ex)
         {
@@ -54,9 +39,38 @@ public class ConnectionManager : MonoBehaviour
         }
     }
 
-    private void ParseServerInfo(string serverInfo)
+    public async void RequestSubServer()
+    {
+        if (masterClient == null || !masterClient.Connected)
+        {
+            Debug.LogError("Not connected to Master Server. Cannot request SubServer.");
+            return;
+        }
+
+        try
+        {
+            NetworkStream stream = masterClient.GetStream();
+            byte[] requestData = Encoding.UTF8.GetBytes("RequestSubServer");
+            await stream.WriteAsync(requestData, 0, requestData.Length);
+
+            byte[] buffer = new byte[1024];
+            int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
+            if (bytesRead > 0)
+            {
+                string response = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+                ParseSubServerInfo(response);
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"Failed to request SubServer: {ex.Message}");
+        }
+    }
+
+    private void ParseSubServerInfo(string serverInfo)
     {
         string[] info = serverInfo.Split('|');
+        // Gán giá trị cho các biến toàn cục
         foreach (string entry in info)
         {
             if (entry.StartsWith("ServerIP:"))
@@ -64,9 +78,12 @@ public class ConnectionManager : MonoBehaviour
             if (entry.StartsWith("ServerPort:"))
                 subServerPort = int.Parse(entry.Replace("ServerPort:", "").Trim());
         }
+
+        Debug.Log($"Received SubServer Info - IP: {subServerIP}, Port: {subServerPort}");
+        ConnectToSubServer(subServerIP, subServerPort);
     }
 
-    public async void ConnectToSubServer()
+    public async void ConnectToSubServer(string subServerIP, int subServerPort)
     {
         try
         {
@@ -83,6 +100,7 @@ public class ConnectionManager : MonoBehaviour
         }
     }
 
+    
     private async Task StartReceivingData()
     {
         NetworkStream stream = subServerClient.GetStream();
