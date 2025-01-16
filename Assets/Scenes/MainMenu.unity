@@ -186,7 +186,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &29194954
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3448,7 +3448,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &890491748
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7577,6 +7577,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   IP_InputField: {fileID: 533384089}
+  PlayButton: {fileID: 964647973}
 --- !u!1 &1726319653
 GameObject:
   m_ObjectHideFlags: 0

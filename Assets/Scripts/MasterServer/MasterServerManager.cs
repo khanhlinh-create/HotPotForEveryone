@@ -17,11 +17,12 @@ public class MasterServerManager : MonoBehaviour
     private void Awake()
     {
         DontDestroyOnLoad(gameObject);
+        StartMasterServer(port);
     }
 
     void Start()
     {
-       
+        
     }
 
     public void StartMasterServer(int port)
@@ -69,6 +70,7 @@ public class MasterServerManager : MonoBehaviour
             int subServerPort = int.Parse(parts[2]);
             RegisterSubServer(subServerIP, subServerPort);
         }
+        
         else if (message.StartsWith("RequestSubServer"))
         {
             // Xử lý yêu cầu phân công SubServer từ Client
@@ -78,10 +80,13 @@ public class MasterServerManager : MonoBehaviour
                 string response = $"ServerIP:{assignedServer.IP}|ServerPort:{assignedServer.Port}";
                 byte[] data = Encoding.UTF8.GetBytes(response);
                 stream.Write(data, 0, data.Length);
+                Debug.Log($"Assigned SubServer: {assignedServer.IP}:{assignedServer.Port}");
+            }
+            else
+            {
+                Debug.LogError("No available SubServer to assign.");
             }
         }
-
-        client.Close();
     }
 
     private void RegisterSubServer(string ip, int port)

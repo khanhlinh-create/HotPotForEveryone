@@ -11,6 +11,11 @@ public class RoomManager : MonoBehaviour
 
     private TcpClient subServerClient;
 
+    private void Awake()
+    {
+        DontDestroyOnLoad(gameObject);
+    }
+
     private void Start()
     {
         // Kết nối với SubServer (kết nối này đã được thiết lập từ trước)
