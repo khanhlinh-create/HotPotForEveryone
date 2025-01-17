@@ -53,24 +53,40 @@ public class RoomManager : MonoBehaviour
         }
     }
 
-    public void JoinRoom()
+    public async void JoinRoom()
     {
         string roomCode = RoomCodeInputField.text.Trim();
         if (string.IsNullOrEmpty(roomCode))
         {
             Debug.LogError("Room code is empty. Cannot join room.");
-            // TODO: Hiển thị thông báo lỗi lên UI
             return;
+        }
+        ConnectionManager connectionManager = FindFirstObjectByType<ConnectionManager>();
+
+        // Việc 1: Kết nối tới SubServer
+        if (ConnectionManager.subServerClient == null || !ConnectionManager.subServerClient.Connected)
+        {
+            Debug.Log("Connecting to SubServer...");
+            // Lấy thông tin SubServer IP
+            string subServerIP = await connectionManager.GetSubServerIP(roomCode);
+            if (string.IsNullOrEmpty(subServerIP))
+            {
+                Debug.LogError("SubServer not found for the given room code.");
+                return;
+            }
+            // Kết nối tới SubServer
+            await FindFirstObjectByType<ConnectionManager>().ConnectToSubServer(subServerIP, 6000); // 6000 là cổng mặc định của SubServer
         }
 
-        Debug.Log($"Requested to join room: {roomCode}");
-        ConnectionManager connectionManager = FindObjectsByType<ConnectionManager>(FindObjectsInactive.Exclude, FindObjectsSortMode.None)[0];
-        if (connectionManager == null)
+        // Sau khi kết nối SubServer thành công, gửi yêu cầu tham gia phòng
+        if (ConnectionManager.subServerClient != null && ConnectionManager.subServerClient.Connected)
         {
-            Debug.LogError("No ConnectionManager found in the scene.");
-            return;
+            FindFirstObjectByType<ConnectionManager>().JoinRoomByCode(roomCode);
         }
-        connectionManager.JoinRoomByCode(roomCode);    
+        else
+        {
+            Debug.LogError("Failed to connect to SubServer. Cannot join room.");
+        }
     }
 
     private void SendMessageToSubServer(string message)

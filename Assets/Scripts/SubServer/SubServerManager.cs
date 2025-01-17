@@ -108,6 +108,24 @@ public class SubServerManager : MonoBehaviour
                     byte[] responseData = Encoding.UTF8.GetBytes(response);
                     stream.Write(responseData, 0, responseData.Length);
                 }
+                else if (command[0] == "GetSubServer")
+                {
+                    string roomID = command[1];
+                    if (rooms.Exists(r => r.RoomID == roomID))
+                    {
+                        string response = $"SubServerIP:{GetLocalIPAddress()}";
+                        byte[] responseData = Encoding.UTF8.GetBytes(response);
+                        stream.Write(responseData, 0, responseData.Length);
+                        Debug.Log($"SubServer info sent for room {roomID}");
+                    }
+                    else
+                    {
+                        byte[] responseData = Encoding.UTF8.GetBytes("RoomNotFound");
+                        stream.Write(responseData, 0, responseData.Length);
+                        Debug.LogWarning($"Room {roomID} not found. SubServer info not sent.");
+                    }
+                }
+
                 else if (command[0] == "JoinRoom")
                 {
                     string roomID = command[1];
@@ -152,7 +170,7 @@ public class SubServerManager : MonoBehaviour
             if (ip.AddressFamily == AddressFamily.InterNetwork)
             {
                 // Kiểm tra xem IP có thuộc dải mạng LAN không (192.168.x.x hoặc 10.x.x.x)
-                if (ip.ToString().StartsWith("10.45."))
+                if (ip.ToString().StartsWith("192.168.65."))
                 {
                     return ip.ToString();
                 }

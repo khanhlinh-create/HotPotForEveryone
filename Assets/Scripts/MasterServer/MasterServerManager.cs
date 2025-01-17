@@ -9,6 +9,7 @@ using System.Threading;
 public class MasterServerManager : MonoBehaviour
 {
     private List<SubServerInfo> subServers = new List<SubServerInfo>();
+    private Dictionary<string, SubServerInfo> roomToSubServerMap = new Dictionary<string, SubServerInfo>();
     private int lastAssignedIndex = -1;
     private bool isServerRunning = false;
     public int port = 5000; // Cổng của Master Server
@@ -87,12 +88,47 @@ public class MasterServerManager : MonoBehaviour
                 Debug.LogError("No available SubServer to assign.");
             }
         }
+        else if (message.StartsWith("GetSubServer"))
+        {
+            // Xử lý yêu cầu tìm SubServer cho một mã phòng
+            string[] parts = message.Split('|');
+            if (parts.Length >= 2)
+            {
+                string roomCode = parts[1].Trim();
+                if (roomToSubServerMap.TryGetValue(roomCode, out SubServerInfo subServer))
+                {
+                    // Trả về thông tin SubServer đang quản lý phòng
+                    string response = $"SubServerIP:{subServer.IP}|Port:{subServer.Port}";
+                    byte[] responseData = Encoding.UTF8.GetBytes(response);
+                    stream.Write(responseData, 0, responseData.Length);
+                    Debug.Log($"Returned SubServer for room {roomCode}: {subServer.IP}:{subServer.Port}");
+                }
+                else
+                {
+                    // Phòng không tồn tại
+                    string response = "RoomNotFound";
+                    byte[] responseData = Encoding.UTF8.GetBytes(response);
+                    stream.Write(responseData, 0, responseData.Length);
+                    Debug.LogWarning($"Room {roomCode} not found.");
+                }
+            }
+        }
+
     }
 
     private void RegisterSubServer(string ip, int port)
     {
-        subServers.Add(new SubServerInfo { IP = ip, Port = port });
+        SubServerInfo subServer = new SubServerInfo { IP = ip, Port = port };
+        subServers.Add(subServer);
         Debug.Log($"SubServer registered: {ip}:{port}");
+
+        // Ví dụ: SubServer gửi thông tin các phòng nó quản lý sau khi đăng ký
+        string[] rooms = { "room1", "room2" }; // Đây là giả định, bạn cần nhận thông tin từ SubServer
+        foreach (string room in rooms)
+        {
+            roomToSubServerMap[room] = subServer;
+            Debug.Log($"Mapped room {room} to SubServer {ip}:{port}");
+        }
     }
 
     private SubServerInfo GetNextSubServer()

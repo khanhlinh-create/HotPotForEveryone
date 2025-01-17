@@ -67,6 +67,45 @@ public class ConnectionManager : MonoBehaviour
         }
     }
 
+    public async Task<string> GetSubServerIP(string roomCode)
+    {
+        if (masterClient == null || !masterClient.Connected)
+        {
+            Debug.LogError("Not connected to MasterServer. Cannot request SubServer IP.");
+            return null;
+        }
+
+        try
+        {
+            NetworkStream stream = masterClient.GetStream();
+            string requestMessage = $"GetSubServer|{roomCode}"; // Yêu cầu lấy thông tin SubServer
+            byte[] requestData = Encoding.UTF8.GetBytes(requestMessage);
+            await stream.WriteAsync(requestData, 0, requestData.Length);
+
+            byte[] buffer = new byte[1024];
+            int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
+            string response = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+
+            if (response.StartsWith("SubServerIP:"))
+            {
+                string subServerIP = response.Replace("SubServerIP:", "").Trim();
+                Debug.Log($"Received SubServer IP for room {roomCode}: {subServerIP}");
+                return subServerIP;
+            }
+            else
+            {
+                Debug.LogError("Failed to get SubServer IP. Room may not exist.");
+                return null;
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"Error getting SubServer IP: {ex.Message}");
+            return null;
+        }
+    }
+
+
     private void ParseSubServerInfo(string serverInfo)
     {
         string[] info = serverInfo.Split('|');
@@ -83,7 +122,7 @@ public class ConnectionManager : MonoBehaviour
         ConnectToSubServer(subServerIP, subServerPort);
     }
 
-    public async void ConnectToSubServer(string subServerIP, int subServerPort)
+    public async Task ConnectToSubServer(string subServerIP, int subServerPort)
     {
         try
         {
