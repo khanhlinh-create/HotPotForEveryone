@@ -2,6 +2,7 @@
 using TMPro; // Nếu dùng TextMeshPro
 using System.Net.Sockets;
 using System.Text;
+using System.Collections;
 
 public class RoomManager : MonoBehaviour
 {
@@ -24,9 +25,32 @@ public class RoomManager : MonoBehaviour
 
     public void CreateRoom()
     {
+        StartCoroutine(EnsureConnectionThenCreateRoom());
+    }
+
+    private IEnumerator EnsureConnectionThenCreateRoom()
+    {
+        // Đảm bảo kết nối SubServer
+        while (subServerClient == null || !subServerClient.Connected)
+        {
+            Debug.Log("Waiting for connection to SubServer...");
+            yield return new WaitForSeconds(0.5f);
+            UpdateSubServerClient();
+        }
+
+        // Khi đã kết nối, gửi yêu cầu tạo phòng
         string message = "CreateRoom|";
         SendMessageToSubServer(message);
         Debug.Log("Requested to create a room.");
+    }
+
+    private void UpdateSubServerClient()
+    {
+        if (subServerClient == null && ConnectionManager.subServerClient != null)
+        {
+            subServerClient = ConnectionManager.subServerClient;
+            Debug.Log("SubServerClient updated from ConnectionManager.");
+        }
     }
 
     public void JoinRoom()
@@ -46,6 +70,12 @@ public class RoomManager : MonoBehaviour
 
     private void SendMessageToSubServer(string message)
     {
+        if (subServerClient == null || !subServerClient.Connected)
+        {
+            Debug.LogError("SubServerClient is not connected. Cannot send message.");
+            return;
+        }
+
         try
         {
             NetworkStream stream = subServerClient.GetStream();
@@ -58,25 +88,22 @@ public class RoomManager : MonoBehaviour
         }
     }
 
+
     public void HandleRoomResponse(string response)
     {
         Debug.Log($"RoomManager received response: {response}");
         if (response.StartsWith("RoomCreated"))
         {
-            string roomName = response.Split('|')[1];
-            Debug.Log($"Room '{roomName}' created successfully.");
-            // Cập nhật UI hoặc chuyển scene
+            string roomID = response.Split('|')[1];
+            Debug.Log($"Room '{roomID}' created successfully.");
+            // Hiển thị mã phòng lên UI hoặc chuyển scene
+            //RoomCodeInputField.text = roomID; // VD: Hiển thị mã phòng ở InputField
         }
         else if (response.StartsWith("RoomJoined"))
         {
-            string roomName = response.Split('|')[1];
-            Debug.Log($"Joined room '{roomName}' successfully.");
+            string roomID = response.Split('|')[1];
+            Debug.Log($"Joined room '{roomID}' successfully.");
             // Cập nhật UI hoặc chuyển scene
-        }
-        else if (response.StartsWith("RoomError"))
-        {
-            Debug.LogError($"Room error: {response}");
-            // Hiển thị lỗi lên UI
         }
     }
 }

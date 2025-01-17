@@ -100,8 +100,13 @@ public class SubServerManager : MonoBehaviour
 
                 if (command[0] == "CreateRoom")
                 {
-                    string roomID = command[1];
+                    string roomID = GenerateRandomRoomID(); // Tạo mã phòng ngẫu nhiên
                     CreateRoom(roomID, client);
+
+                    // Gửi lại mã phòng cho client
+                    string response = $"RoomCreated|{roomID}";
+                    byte[] responseData = Encoding.UTF8.GetBytes(response);
+                    stream.Write(responseData, 0, responseData.Length);
                 }
                 else if (command[0] == "JoinRoom")
                 {
@@ -124,6 +129,18 @@ public class SubServerManager : MonoBehaviour
         }
     }
 
+    private string GenerateRandomRoomID()
+    {
+        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        var random = new System.Random();
+        char[] buffer = new char[6]; // Mã phòng có 6 ký tự
+        for (int i = 0; i < buffer.Length; i++)
+        {
+            buffer[i] = chars[random.Next(chars.Length)];
+        }
+        return new string(buffer);
+    }
+
     private string GetLocalIPAddress()
     {
         var host = Dns.GetHostEntry(Dns.GetHostName());
@@ -131,7 +148,11 @@ public class SubServerManager : MonoBehaviour
         {
             if (ip.AddressFamily == AddressFamily.InterNetwork)
             {
-                return ip.ToString();
+                // Kiểm tra xem IP có thuộc dải mạng LAN không (192.168.x.x hoặc 10.x.x.x)
+                if (ip.ToString().StartsWith("192.168.30."))
+                {
+                    return ip.ToString();
+                }
             }
         }
         throw new Exception("No network adapters with an IPv4 address in the system!");
