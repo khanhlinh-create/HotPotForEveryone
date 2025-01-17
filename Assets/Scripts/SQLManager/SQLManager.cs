@@ -1,9 +1,9 @@
-using Microsoft.Data.SqlClient; 
 using UnityEngine;
+using System.Data.SqlClient;
 
 public class SQLManager : MonoBehaviour
 {
-    private string connectionString = "Server=LAPTOP-8TJ5C168; Database=QLNGUOIDUNG; Trusted_Connection=True";
+    private string connectionString = "Server=localhost\\SQLEXPRESS Database=QLNGUOIDUNG; Trusted_Connection=True";
 
     public bool CheckUsernameExists(string username)
     {
