@@ -149,7 +149,7 @@ public class SubServerManager : MonoBehaviour
             if (ip.AddressFamily == AddressFamily.InterNetwork)
             {
                 // Kiểm tra xem IP có thuộc dải mạng LAN không (192.168.x.x hoặc 10.x.x.x)
-                if (ip.ToString().StartsWith("10.45."))
+                if (ip.ToString().StartsWith("192.168.30."))
                 {
                     return ip.ToString();
                 }
