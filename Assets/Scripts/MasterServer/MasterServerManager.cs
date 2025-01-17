@@ -88,6 +88,24 @@ public class MasterServerManager : MonoBehaviour
                 Debug.LogError("No available SubServer to assign.");
             }
         }
+        else if (message.StartsWith("AddRoom"))
+        {
+            // SubServer gửi mã phòng lên
+            string[] parts = message.Split('|');
+            if (parts.Length >= 3)
+            {
+                string roomCode = parts[1];
+                string subServerIP = parts[2];
+                int subServerPort = int.Parse(parts[3]);
+
+                if (!roomToSubServerMap.ContainsKey(roomCode))
+                {
+                    SubServerInfo subServer = new SubServerInfo { IP = subServerIP, Port = subServerPort };
+                    roomToSubServerMap[roomCode] = subServer;
+                    Debug.Log($"Room {roomCode} mapped to SubServer {subServerIP}:{subServerPort}");
+                }
+            }
+        }
         else if (message.StartsWith("GetSubServer"))
         {
             // Xử lý yêu cầu tìm SubServer cho một mã phòng

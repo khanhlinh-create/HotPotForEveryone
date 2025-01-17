@@ -78,7 +78,7 @@ public class RoomManager : MonoBehaviour
             await FindFirstObjectByType<ConnectionManager>().ConnectToSubServer(subServerIP, 6000); // 6000 là cổng mặc định của SubServer
         }
 
-        // Sau khi kết nối SubServer thành công, gửi yêu cầu tham gia phòng
+        // Việc 2: Sau khi kết nối SubServer thành công, gửi yêu cầu tham gia phòng
         if (ConnectionManager.subServerClient != null && ConnectionManager.subServerClient.Connected)
         {
             FindFirstObjectByType<ConnectionManager>().JoinRoomByCode(roomCode);

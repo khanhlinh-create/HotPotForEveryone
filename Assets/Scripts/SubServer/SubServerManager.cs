@@ -108,7 +108,8 @@ public class SubServerManager : MonoBehaviour
                     byte[] responseData = Encoding.UTF8.GetBytes(response);
                     stream.Write(responseData, 0, responseData.Length);
                 }
-                else if (command[0] == "GetSubServer")
+
+                /*else if (command[0] == "GetSubServer")
                 {
                     string roomID = command[1];
                     if (rooms.Exists(r => r.RoomID == roomID))
@@ -124,7 +125,7 @@ public class SubServerManager : MonoBehaviour
                         stream.Write(responseData, 0, responseData.Length);
                         Debug.LogWarning($"Room {roomID} not found. SubServer info not sent.");
                     }
-                }
+                }*/
 
                 else if (command[0] == "JoinRoom")
                 {
@@ -185,6 +186,28 @@ public class SubServerManager : MonoBehaviour
         room.AddPlayer(client);
         rooms.Add(room);
         Debug.Log($"Room {roomID} created!");
+
+        // Gửi mã phòng lên MasterServer
+        NotifyMasterServerRoomCreation(roomID);
+    }
+
+    private void NotifyMasterServerRoomCreation(string roomID)
+    {
+        try
+        {
+            TcpClient masterClient = new TcpClient(masterServerIP, masterServerPort);
+            NetworkStream stream = masterClient.GetStream();
+            string message = $"AddRoom|{roomID}|{GetLocalIPAddress()}|{subServerPort}";
+            byte[] data = Encoding.UTF8.GetBytes(message);
+            stream.Write(data, 0, data.Length);
+            masterClient.Close();
+
+            Debug.Log($"Notified MasterServer of room {roomID}.");
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"Error notifying MasterServer of room creation: {ex.Message}");
+        }
     }
 
     private bool JoinRoom(string roomID, TcpClient client)
