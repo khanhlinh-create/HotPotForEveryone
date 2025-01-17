@@ -56,16 +56,21 @@ public class RoomManager : MonoBehaviour
     public void JoinRoom()
     {
         string roomCode = RoomCodeInputField.text.Trim();
-        if (!string.IsNullOrEmpty(roomCode))
+        if (string.IsNullOrEmpty(roomCode))
         {
-            string message = $"JoinRoom|{roomCode}";
-            SendMessageToSubServer(message);
-            Debug.Log($"Requested to join room: {roomCode}");
+            Debug.LogError("Room code is empty. Cannot join room.");
+            // TODO: Hiển thị thông báo lỗi lên UI
+            return;
         }
-        else
+
+        Debug.Log($"Requested to join room: {roomCode}");
+        ConnectionManager connectionManager = FindObjectsByType<ConnectionManager>(FindObjectsInactive.Exclude, FindObjectsSortMode.None)[0];
+        if (connectionManager == null)
         {
-            Debug.LogWarning("Room code is empty!");
+            Debug.LogError("No ConnectionManager found in the scene.");
+            return;
         }
+        connectionManager.JoinRoomByCode(roomCode);    
     }
 
     private void SendMessageToSubServer(string message)

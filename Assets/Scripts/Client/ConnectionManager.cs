@@ -100,7 +100,43 @@ public class ConnectionManager : MonoBehaviour
         }
     }
 
-    
+    public async void JoinRoomByCode(string roomCode)
+    {
+        if (subServerClient == null || !subServerClient.Connected)
+        {
+            Debug.LogError("Not connected to SubServer. Cannot join room.");
+            return;
+        }
+
+        try
+        {
+            NetworkStream stream = subServerClient.GetStream();
+            string joinMessage = $"JoinRoom|{roomCode}";
+            byte[] data = Encoding.UTF8.GetBytes(joinMessage);
+            await stream.WriteAsync(data, 0, data.Length);
+
+            byte[] buffer = new byte[1024];
+            int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
+            string response = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+
+            if (response.StartsWith("JoinSuccess"))
+            {
+                Debug.Log($"Successfully joined room {roomCode}");
+                // TODO: Chuyển sang màn hình phòng chơi
+            }
+            else if (response.StartsWith("JoinFail"))
+            {
+                Debug.LogError("Failed to join room. Room not found.");
+                // TODO: Hiển thị thông báo lỗi lên UI
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"Error joining room: {ex.Message}");
+        }
+    }
+
+
     private async Task StartReceivingData()
     {
         NetworkStream stream = subServerClient.GetStream();

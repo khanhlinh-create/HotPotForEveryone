@@ -111,7 +111,10 @@ public class SubServerManager : MonoBehaviour
                 else if (command[0] == "JoinRoom")
                 {
                     string roomID = command[1];
-                    JoinRoom(roomID, client);
+                    bool success = JoinRoom(roomID, client);
+                    string response = success ? $"JoinSuccess|{roomID}" : "JoinFail|RoomNotFound";
+                    byte[] responseData = Encoding.UTF8.GetBytes(response);
+                    stream.Write(responseData, 0, responseData.Length);
                 }
                 else if (command[0] == "UpdateState")
                 {
@@ -149,7 +152,7 @@ public class SubServerManager : MonoBehaviour
             if (ip.AddressFamily == AddressFamily.InterNetwork)
             {
                 // Kiểm tra xem IP có thuộc dải mạng LAN không (192.168.x.x hoặc 10.x.x.x)
-                if (ip.ToString().StartsWith("192.168.30."))
+                if (ip.ToString().StartsWith("10.45."))
                 {
                     return ip.ToString();
                 }
@@ -166,17 +169,19 @@ public class SubServerManager : MonoBehaviour
         Debug.Log($"Room {roomID} created!");
     }
 
-    private void JoinRoom(string roomID, TcpClient client)
+    private bool JoinRoom(string roomID, TcpClient client)
     {
         Room room = rooms.Find(r => r.RoomID == roomID);
         if (room != null)
         {
             room.AddPlayer(client);
             Debug.Log($"Client joined room {roomID}");
+            return true;
         }
         else
         {
             Debug.LogWarning($"Room {roomID} not found!");
+            return false;
         }
     }
 
