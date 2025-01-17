@@ -53,18 +53,39 @@ public class RoomManager : MonoBehaviour
         }
     }
 
-    public void JoinRoom()
+    public async void JoinRoom()
     {
         string roomCode = RoomCodeInputField.text.Trim();
-        if (!string.IsNullOrEmpty(roomCode))
+        if (string.IsNullOrEmpty(roomCode))
         {
-            string message = $"JoinRoom|{roomCode}";
-            SendMessageToSubServer(message);
-            Debug.Log($"Requested to join room: {roomCode}");
+            Debug.LogError("Room code is empty. Cannot join room.");
+            return;
+        }
+        ConnectionManager connectionManager = FindFirstObjectByType<ConnectionManager>();
+
+        // Việc 1: Kết nối tới SubServer
+        if (ConnectionManager.subServerClient == null || !ConnectionManager.subServerClient.Connected)
+        {
+            Debug.Log("Connecting to SubServer...");
+            // Lấy thông tin SubServer IP
+            string subServerIP = await connectionManager.GetSubServerIP(roomCode);
+            if (string.IsNullOrEmpty(subServerIP))
+            {
+                Debug.LogError("SubServer not found for the given room code.");
+                return;
+            }
+            // Kết nối tới SubServer
+            await FindFirstObjectByType<ConnectionManager>().ConnectToSubServer(subServerIP, 6000); // 6000 là cổng mặc định của SubServer
+        }
+
+        // Việc 2: Sau khi kết nối SubServer thành công, gửi yêu cầu tham gia phòng
+        if (ConnectionManager.subServerClient != null && ConnectionManager.subServerClient.Connected)
+        {
+            FindFirstObjectByType<ConnectionManager>().JoinRoomByCode(roomCode);
         }
         else
         {
-            Debug.LogWarning("Room code is empty!");
+            Debug.LogError("Failed to connect to SubServer. Cannot join room.");
         }
     }
 
