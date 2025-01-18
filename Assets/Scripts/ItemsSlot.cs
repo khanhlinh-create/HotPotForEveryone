@@ -59,9 +59,14 @@ public class ItemsSlot : MonoBehaviour, IDropHandler
                     float.TryParse(posParts[1], out float y) &&
                     float.TryParse(posParts[2], out float z))
                 {
-                    Vector3 newPosition = new Vector3(x, y, z);
-                    itemTransform.position = newPosition;
-                    Debug.Log($"Updated {itemName} position to: {newPosition}");
+                    // Chuyển đổi tọa độ toàn cục (world space) sang tọa độ cục bộ (local space)
+                    RectTransform rectTransform = itemTransform.GetComponent<RectTransform>();
+                    if (rectTransform != null)
+                    {
+                        Vector3 newPosition = new Vector3(x, y, z);
+                        rectTransform.anchoredPosition = newPosition; // Sử dụng `anchoredPosition` thay vì `position`
+                        Debug.Log($"Updated {itemName} anchoredPosition to: {newPosition}");
+                    }
                 }
                 else
                 {
@@ -74,6 +79,7 @@ public class ItemsSlot : MonoBehaviour, IDropHandler
             }
         }
     }
+
 
 
 }
