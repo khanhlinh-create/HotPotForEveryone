@@ -30,7 +30,7 @@ public class RoomManager : MonoBehaviour
 
     private IEnumerator EnsureConnectionThenCreateRoom()
     {
-        // Đảm bảo kết nối SubServer
+        // Đảm bảo kết nối SubServer trước khi client gửi yêu cầu Create Room đến SubServer 
         while (subServerClient == null || !subServerClient.Connected)
         {
             Debug.Log("Waiting for connection to SubServer...");
@@ -43,7 +43,7 @@ public class RoomManager : MonoBehaviour
         SendMessageToSubServer(message);
         Debug.Log("Requested to create a room.");
     }
-
+    //Hàm quan trọng để kết nối 2 script ConnectionManager và RoomManager 
     private void UpdateSubServerClient()
     {
         if (subServerClient == null && ConnectionManager.subServerClient != null)
@@ -52,7 +52,7 @@ public class RoomManager : MonoBehaviour
             Debug.Log("SubServerClient updated from ConnectionManager.");
         }
     }
-
+    //Khi client nhập roomcode và nhấn button Join Room 
     public async void JoinRoom()
     {
         string roomCode = RoomCodeInputField.text.Trim();
@@ -67,28 +67,30 @@ public class RoomManager : MonoBehaviour
         if (ConnectionManager.subServerClient == null || !ConnectionManager.subServerClient.Connected)
         {
             Debug.Log("Connecting to SubServer...");
-            // Lấy thông tin SubServer IP
-            string subServerIP = await connectionManager.GetSubServerIP(roomCode);
-            if (string.IsNullOrEmpty(subServerIP))
+            //yêu cầu Master Server trả về thông tin SubServer đang quản lý mã phòng đã nhập
+            // Nhận tuple (subServerIP, subServerPort)`
+            var (subServerIP, subServerPort) = await connectionManager.GetSubServerIP(roomCode);
+            if (string.IsNullOrEmpty(subServerIP) || subServerPort == 0)
             {
-                Debug.LogError("SubServer not found for the given room code.");
+                Debug.LogError("SubServer not found for the given room code."); /*thông báo khi Master Server không tìm thấy SubServer
+                                                                                    tương ứng */
                 return;
             }
             // Kết nối tới SubServer
-            await FindFirstObjectByType<ConnectionManager>().ConnectToSubServer(subServerIP, 6000); // 6000 là cổng mặc định của SubServer
+            await connectionManager.ConnectToSubServer(subServerIP, subServerPort);
         }
 
         // Việc 2: Sau khi kết nối SubServer thành công, gửi yêu cầu tham gia phòng
         if (ConnectionManager.subServerClient != null && ConnectionManager.subServerClient.Connected)
         {
-            FindFirstObjectByType<ConnectionManager>().JoinRoomByCode(roomCode);
+            connectionManager.JoinRoomByCode(roomCode); //client yêu cầu SubServer cho vào phòng 
         }
         else
         {
             Debug.LogError("Failed to connect to SubServer. Cannot join room.");
         }
     }
-
+    //Hàm để gửi thông tin cho SubServer 
     private void SendMessageToSubServer(string message)
     {
         if (subServerClient == null || !subServerClient.Connected)
@@ -109,7 +111,7 @@ public class RoomManager : MonoBehaviour
         }
     }
 
-
+    //Hàm nhận thông tin về phòng được gửi bởi SubServer 
     public void HandleRoomResponse(string response)
     {
         Debug.Log($"RoomManager received response: {response}");
@@ -118,7 +120,6 @@ public class RoomManager : MonoBehaviour
             string roomID = response.Split('|')[1];
             Debug.Log($"Room '{roomID}' created successfully.");
             // Hiển thị mã phòng lên UI hoặc chuyển scene
-            //RoomCodeInputField.text = roomID; // VD: Hiển thị mã phòng ở InputField
         }
         else if (response.StartsWith("RoomJoined"))
         {

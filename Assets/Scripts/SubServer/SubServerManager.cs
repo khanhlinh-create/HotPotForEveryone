@@ -27,7 +27,7 @@ public class SubServerManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
         StartSubServer(subServerPort);
     }
-
+    //Hàm kết nối với Master Server 
     private void RegisterToMasterServer()
     {
         try
@@ -46,7 +46,7 @@ public class SubServerManager : MonoBehaviour
             Debug.LogError($"Error registering SubServer: {ex.Message}");
         }
     }
-
+    //Hàm khởi chạy Sub Server, bắt đầu lắng nghe 
     private void StartSubServer(int port)
     {
         if (isServerRunning) return; // Đảm bảo không khởi động lại nếu đã chạy
@@ -61,7 +61,7 @@ public class SubServerManager : MonoBehaviour
         Debug.Log($"SubServer started on port {port}.");
     }
 
-
+    //Hàm luôn lắng nghe kết nối khi chạy 
     private void ListenForClients()
     {
         while (isServerRunning)
@@ -82,7 +82,7 @@ public class SubServerManager : MonoBehaviour
             }
         }
     }
-
+    //Hàm xử lý yêu cầu của client 
     public void HandleClient(TcpClient client)
     {
         NetworkStream stream = client.GetStream();
@@ -97,7 +97,7 @@ public class SubServerManager : MonoBehaviour
 
                 string message = Encoding.UTF8.GetString(buffer, 0, bytesRead);
                 string[] command = message.Split('|');
-
+                //Khi client nhấn button Create room
                 if (command[0] == "CreateRoom")
                 {
                     string roomID = GenerateRandomRoomID(); // Tạo mã phòng ngẫu nhiên
@@ -126,7 +126,7 @@ public class SubServerManager : MonoBehaviour
                         Debug.LogWarning($"Room {roomID} not found. SubServer info not sent.");
                     }
                 }*/
-
+                //Khi client nhấn button Join Room 
                 else if (command[0] == "JoinRoom")
                 {
                     string roomID = command[1];
@@ -135,6 +135,7 @@ public class SubServerManager : MonoBehaviour
                     byte[] responseData = Encoding.UTF8.GetBytes(response);
                     stream.Write(responseData, 0, responseData.Length);
                 }
+                //chưa cần xử lý tới...
                 else if (command[0] == "UpdateState")
                 {
                     string roomID = command[1];
@@ -150,7 +151,7 @@ public class SubServerManager : MonoBehaviour
             }
         }
     }
-
+    //Hàm tạo mã phòng 
     private string GenerateRandomRoomID()
     {
         const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -162,7 +163,7 @@ public class SubServerManager : MonoBehaviour
         }
         return new string(buffer);
     }
-
+    //Lấy IP trả về cho Master Server để đăng ký
     private string GetLocalIPAddress()
     {
         var host = Dns.GetHostEntry(Dns.GetHostName());
@@ -171,7 +172,7 @@ public class SubServerManager : MonoBehaviour
             if (ip.AddressFamily == AddressFamily.InterNetwork)
             {
                 // Kiểm tra xem IP có thuộc dải mạng LAN không (192.168.x.x hoặc 10.x.x.x)
-                if (ip.ToString().StartsWith("192.168.65."))
+                if (ip.ToString().StartsWith("192.168.15."))
                 {
                     return ip.ToString();
                 }
@@ -179,7 +180,7 @@ public class SubServerManager : MonoBehaviour
         }
         throw new Exception("No network adapters with an IPv4 address in the system!");
     }
-
+    //Hàm Tạo phòng 
     private void CreateRoom(string roomID, TcpClient client)
     {
         Room room = new Room(roomID);
@@ -197,10 +198,10 @@ public class SubServerManager : MonoBehaviour
         {
             TcpClient masterClient = new TcpClient(masterServerIP, masterServerPort);
             NetworkStream stream = masterClient.GetStream();
+            //gửi thông tin về cho Master Server gồm roomcode|subIP|subPort 
             string message = $"AddRoom|{roomID}|{GetLocalIPAddress()}|{subServerPort}";
             byte[] data = Encoding.UTF8.GetBytes(message);
             stream.Write(data, 0, data.Length);
-            masterClient.Close();
 
             Debug.Log($"Notified MasterServer of room {roomID}.");
         }
@@ -209,7 +210,7 @@ public class SubServerManager : MonoBehaviour
             Debug.LogError($"Error notifying MasterServer of room creation: {ex.Message}");
         }
     }
-
+    //Hàm thực hiện cho client Join Room khi clietn yêu cầu Join 
     private bool JoinRoom(string roomID, TcpClient client)
     {
         Room room = rooms.Find(r => r.RoomID == roomID);
@@ -250,7 +251,7 @@ public class SubServerManager : MonoBehaviour
 public class Room
 {
     public string RoomID { get; private set; }
-    private List<TcpClient> players = new List<TcpClient>();
+    private List<TcpClient> players = new List<TcpClient>(); //quản lý người chơi 
     private Dictionary<string, string> roomState = new Dictionary<string, string>(); // Trạng thái của phòng
 
     public Room(string id)
@@ -269,7 +270,7 @@ public class Room
         roomState[key] = value; // Cập nhật trạng thái
         BroadcastState(); // Gửi trạng thái tới tất cả các Client trong phòng
     }
-
+    //Hàm để đồng bộ hóa tới người chơi trong phòng 
     private void BroadcastState()
     {
         string stateData = SerializeState();

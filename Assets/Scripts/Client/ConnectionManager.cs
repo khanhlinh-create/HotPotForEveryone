@@ -21,7 +21,7 @@ public class ConnectionManager : MonoBehaviour
     {
         DontDestroyOnLoad(gameObject);
     }
-
+    //Hàm để Client kết nối với Master Server khi client nhập IP Master Server và nhấn button Play (scene 1)
     public async void ConnectToMasterServer()
     {
         masterServerIP = IP_InputField.text.Trim();
@@ -38,7 +38,7 @@ public class ConnectionManager : MonoBehaviour
             ShowErrorToUser("Cannot connect to Master Server. Check IP or try again.");
         }
     }
-
+    //Hàm yêu cầu Master Server chỉ định SubServer khi client nhấn button Create Room 
     public async void RequestSubServer()
     {
         if (masterClient == null || !masterClient.Connected)
@@ -66,19 +66,20 @@ public class ConnectionManager : MonoBehaviour
             Debug.LogError($"Failed to request SubServer: {ex.Message}");
         }
     }
-
-    public async Task<string> GetSubServerIP(string roomCode)
+    /*Yêu cầu Master Server trả về thông tin của SubServer đang quản lý mã phòng khi client nhập mã phòng
+    vào roomcode_InputField và nhấn button Join Room*/
+    public async Task<(string, int)> GetSubServerIP(string roomCode)
     {
         if (masterClient == null || !masterClient.Connected)
         {
             Debug.LogError("Not connected to MasterServer. Cannot request SubServer IP.");
-            return null;
+            return (null, 0); // Trả về giá trị mặc định khi không kết nối
         }
 
         try
         {
             NetworkStream stream = masterClient.GetStream();
-            string requestMessage = $"GetSubServer|{roomCode}"; // Yêu cầu lấy thông tin SubServer
+            string requestMessage = $"GetSubServer|{roomCode}";
             byte[] requestData = Encoding.UTF8.GetBytes(requestMessage);
             await stream.WriteAsync(requestData, 0, requestData.Length);
 
@@ -88,24 +89,27 @@ public class ConnectionManager : MonoBehaviour
 
             if (response.StartsWith("SubServerIP:"))
             {
-                string subServerIP = response.Replace("SubServerIP:", "").Trim();
-                Debug.Log($"Received SubServer IP for room {roomCode}: {subServerIP}");
-                return subServerIP;
+                string[] parts = response.Split('|');
+                string subServerIP = parts[0].Replace("SubServerIP:", "").Trim();
+                int subServerPort = int.Parse(parts[1].Replace("Port:", "").Trim());
+                Debug.Log($"Received SubServer IP for room {roomCode}: {subServerIP}:{subServerPort}");
+                return (subServerIP, subServerPort);
             }
             else
             {
                 Debug.LogError("Failed to get SubServer IP. Room may not exist.");
-                return null;
+                return (null, 0); // Trả về giá trị mặc định nếu không tìm thấy phòng
             }
         }
         catch (Exception ex)
         {
             Debug.LogError($"Error getting SubServer IP: {ex.Message}");
-            return null;
+            return (null, 0); // Trả về giá trị mặc định khi gặp lỗi
         }
     }
 
 
+    //Hàm lấy thông tin (IP, Port) của SubServer để kết nối 
     private void ParseSubServerInfo(string serverInfo)
     {
         string[] info = serverInfo.Split('|');
@@ -121,7 +125,7 @@ public class ConnectionManager : MonoBehaviour
         Debug.Log($"Received SubServer Info - IP: {subServerIP}, Port: {subServerPort}");
         ConnectToSubServer(subServerIP, subServerPort);
     }
-
+    //Hàm kết nối với SubServer 
     public async Task ConnectToSubServer(string subServerIP, int subServerPort)
     {
         try
@@ -138,7 +142,8 @@ public class ConnectionManager : MonoBehaviour
             ReconnectToSubServer();
         }
     }
-
+    /*dùng sau khi client nhập roomcode và nhấn button Join Room đã
+     kết nối với SubServer quản lý phòng thành công, yêu cầu SubServer cho mình vào phòng*/
     public async void JoinRoomByCode(string roomCode)
     {
         if (subServerClient == null || !subServerClient.Connected)
@@ -175,7 +180,7 @@ public class ConnectionManager : MonoBehaviour
         }
     }
 
-
+    //Nhận thông tin từ SubServer 
     private async Task StartReceivingData()
     {
         NetworkStream stream = subServerClient.GetStream();
@@ -203,7 +208,7 @@ public class ConnectionManager : MonoBehaviour
             }
         }
     }
-
+    //Nhận dữ liệu liên quan đến phòng
     private void HandleReceivedData(string data)
     {
         // Phân loại dữ liệu và chuyển tới các script khác
@@ -216,7 +221,7 @@ public class ConnectionManager : MonoBehaviour
             UpdateGameState(data);
         }
     }
-
+    //Hàm để cập nhập GameState khi nhận các thay đổi từ SubServer 
     private void UpdateGameState(string data)
     {
         string[] entries = data.Split('|');
@@ -240,7 +245,7 @@ public class ConnectionManager : MonoBehaviour
             }
         }
     }
-
+    //gửi thay đổi cho SubServer 
     public void SendGameStateUpdate(string gameState)
     {
         if (subServerClient != null)
@@ -251,19 +256,19 @@ public class ConnectionManager : MonoBehaviour
         }
     }
 
-
+    //Hàm để cập nhập đĩa ăn 
     private void UpdateItemUI(string itemName, string state)
     {
         // Tìm đối tượng UI dựa trên tên item và thay đổi trạng thái
         Debug.Log($"Updating UI for {itemName}: {state}");
     }
-
+    //Hàm để cập nhập nồi lẩu 
     private void UpdateHotPotState(string state)
     {
-        // Thay đổi trạng thái nồi lẩu (VD: Đang sôi, nguội, chín)
+        // Thay đổi trạng thái nồi lẩu 
         Debug.Log($"Updating HotPot state: {state}");
     }
-
+    //Hàm để kết nối lại với SubServer khi kết nối gián đoạn 
     private async void ReconnectToSubServer()
     {
         while (!subServerClient.Connected)
