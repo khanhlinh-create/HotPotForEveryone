@@ -36,7 +36,7 @@ public class ItemsSlot : MonoBehaviour, IDropHandler
     public void HandleSlotUpdate(string data)
     {
         string[] parts = data.Split('|');
-        if (parts[0] == "UpdateState")
+        if (parts.Length == 3 && parts[0] == "UpdateState")
         {
             string itemName = parts[1]; // Tên của topping
             string position = parts[2]; // Vị trí dưới dạng "x,y,z"

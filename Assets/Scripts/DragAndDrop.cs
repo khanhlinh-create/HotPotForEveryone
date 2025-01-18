@@ -166,7 +166,7 @@ public class DragAndDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler
     {
         if (ConnectionManager.subServerClient != null && ConnectionManager.subServerClient.Connected)
         {
-            string message = $"UpdateState|Hotpot|{itemName}|{position.x},{position.y}, {position.z}";
+            string message = $"UpdateState|{itemName}|{position.x},{position.y}, {position.z}";
             NetworkStream stream = ConnectionManager.subServerClient.GetStream();
             byte[] data = Encoding.UTF8.GetBytes(message);
             stream.Write(data, 0, data.Length);
