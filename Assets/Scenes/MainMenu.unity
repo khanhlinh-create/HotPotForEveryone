@@ -199,7 +199,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 31a8e61bcea6c3547a4cfd61164e56ef, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  masterServerIP: 127.0.0.1
+  masterServerIP: 192.168.15.106
   masterServerPort: 5000
   subServerPort: 6000
 --- !u!4 &29194955

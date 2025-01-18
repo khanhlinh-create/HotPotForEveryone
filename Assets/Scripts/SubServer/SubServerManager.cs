@@ -14,7 +14,7 @@ public class SubServerManager : MonoBehaviour
     private Dictionary<string, string> globalGameState = new Dictionary<string, string>(); // Trạng thái toàn cục (VD: nồi lẩu và đĩa ăn)
     private List<TcpClient> connectedClients = new List<TcpClient>();
 
-    public string masterServerIP = "127.0.0.1"; // Địa chỉ IP của Master Server
+    public string masterServerIP = "192.168.15.106"; // Địa chỉ IP của Master Server
     public int masterServerPort = 5000;        // Cổng của Master Server
     public int subServerPort = 6000;           // Cổng của SubServer này
 
