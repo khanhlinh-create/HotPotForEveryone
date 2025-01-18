@@ -146,6 +146,8 @@ public class ConnectionManager : MonoBehaviour
      kết nối với SubServer quản lý phòng thành công, yêu cầu SubServer cho mình vào phòng*/
     public async void JoinRoomByCode(string roomCode)
     {
+        Debug.Log($"Attempting to join room with code: {roomCode}");
+
         if (subServerClient == null || !subServerClient.Connected)
         {
             Debug.LogError("Not connected to SubServer. Cannot join room.");
@@ -158,6 +160,8 @@ public class ConnectionManager : MonoBehaviour
             string joinMessage = $"JoinRoom|{roomCode}";
             byte[] data = Encoding.UTF8.GetBytes(joinMessage);
             await stream.WriteAsync(data, 0, data.Length);
+
+            Debug.Log($"Sent join room request: {joinMessage}");
 
             byte[] buffer = new byte[1024];
             int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);

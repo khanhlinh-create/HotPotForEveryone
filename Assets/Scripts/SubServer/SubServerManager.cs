@@ -134,6 +134,8 @@ public class SubServerManager : MonoBehaviour
                     string response = success ? $"JoinSuccess|{roomID}" : "JoinFail|RoomNotFound";
                     byte[] responseData = Encoding.UTF8.GetBytes(response);
                     stream.Write(responseData, 0, responseData.Length);
+
+                    Debug.Log($"SubServer: Client requested to join room {roomID}. Response: {response}");
                 }
                 //chưa cần xử lý tới...
                 else if (command[0] == "UpdateState")
