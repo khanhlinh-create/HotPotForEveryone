@@ -3,7 +3,7 @@ using System.Data.SqlClient;
 
 public class SQLManager : MonoBehaviour
 {
-    private string connectionString = "Server=LAPTOP-8TJ5C168; Database=QLNGUOIDUNG; Trusted_Connection=True";
+    private string connectionString = "Server=LAPTOP-8TJ5C168; Database=QLNGUOIDUNG; Integrated Security=SSPI";
 
     public bool CheckUsernameExists(string username)
     {
