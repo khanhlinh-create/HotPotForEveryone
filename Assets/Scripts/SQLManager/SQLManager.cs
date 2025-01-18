@@ -1,4 +1,4 @@
-/*using UnityEngine;
+﻿using UnityEngine;
 using System.Data.SqlClient;
 
 public class SQLManager : MonoBehaviour
@@ -50,4 +50,4 @@ public class SQLManager : MonoBehaviour
             }
         }
     }
-}*/
+}
