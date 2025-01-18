@@ -3,7 +3,7 @@ using System.Data.SqlClient;
 
 public class SQLManager : MonoBehaviour
 {
-    private string connectionString = "Server=localhost\\SQLEXPRESS Database=QLNGUOIDUNG; Trusted_Connection=True";
+    private string connectionString = "Server=LAPTOP-8TJ5C168; Database=QLNGUOIDUNG; Trusted_Connection=True";
 
     public bool CheckUsernameExists(string username)
     {
@@ -25,7 +25,7 @@ public class SQLManager : MonoBehaviour
         using (SqlConnection conn = new SqlConnection(connectionString))
         {
             conn.Open();
-            string query = "INSERT INTO Users (Username, Password) VALUES (@username, @password)";
+            string query = "INSERT INTO Users (Username, PasswordHash) VALUES (@username, @password)";
             using (SqlCommand cmd = new SqlCommand(query, conn))
             {
                 cmd.Parameters.AddWithValue("@username", username);
@@ -40,7 +40,7 @@ public class SQLManager : MonoBehaviour
         using (SqlConnection conn = new SqlConnection(connectionString))
         {
             conn.Open();
-            string query = "SELECT COUNT(*) FROM Users WHERE Username = @username AND Password = @password";
+            string query = "SELECT COUNT(*) FROM Users WHERE Username = @username AND PasswordHash = @password";
             using (SqlCommand cmd = new SqlCommand(query, conn))
             {
                 cmd.Parameters.AddWithValue("@username", username);
