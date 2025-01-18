@@ -3395,7 +3395,7 @@ MonoBehaviour:
   usernameInput: {fileID: 214169355}
   passwordInput: {fileID: 1092427293}
   messageText: {fileID: 996515056}
-  sqlManager: {fileID: 0}
+  sqlManager: {fileID: 970959906}
 --- !u!114 &889959167
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3412,7 +3412,7 @@ MonoBehaviour:
   passwordInput: {fileID: 1101596218}
   confirmPasswordInput: {fileID: 1259848641}
   messageText: {fileID: 752729436}
-  sqlManager: {fileID: 0}
+  sqlManager: {fileID: 970959906}
 --- !u!4 &889959168
 Transform:
   m_ObjectHideFlags: 0
