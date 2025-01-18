@@ -203,7 +203,8 @@ public class ConnectionManager : MonoBehaviour
 
                 string receivedData = Encoding.UTF8.GetString(buffer, 0, bytesRead);
                 Debug.Log($"Received from SubServer: {receivedData}");
-                HandleReceivedData(receivedData);
+                // Phát tín hiệu để cập nhật UI
+                FindFirstObjectByType<ItemsSlot>()?.HandleSlotUpdate(receivedData);
             }
             catch (Exception ex)
             {

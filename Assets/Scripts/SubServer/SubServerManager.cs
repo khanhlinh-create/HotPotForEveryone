@@ -12,6 +12,7 @@ public class SubServerManager : MonoBehaviour
     private bool isServerRunning = false;
     private List<Room> rooms = new List<Room>();
     private Dictionary<string, string> globalGameState = new Dictionary<string, string>(); // Trạng thái toàn cục (VD: nồi lẩu và đĩa ăn)
+    private List<TcpClient> connectedClients = new List<TcpClient>();
 
     public string masterServerIP = "127.0.0.1"; // Địa chỉ IP của Master Server
     public int masterServerPort = 5000;        // Cổng của Master Server
@@ -70,6 +71,10 @@ public class SubServerManager : MonoBehaviour
             {
                 // Chấp nhận Client kết nối
                 TcpClient client = server.AcceptTcpClient();
+                lock (connectedClients)
+                {
+                    connectedClients.Add(client); // Thêm client vào danh sách
+                }
                 Debug.Log("Client connected!");
 
                 // Tạo một luồng để xử lý Client này
@@ -231,15 +236,42 @@ public class SubServerManager : MonoBehaviour
 
     private void UpdateRoomState(string roomID, string key, string value)
     {
-        Room room = rooms.Find(r => r.RoomID == roomID);
-        if (room != null)
+        globalGameState[key] = value; // Cập nhật trạng thái toàn cục
+        BroadcastGlobalState();       // Phát sóng trạng thái tới mọi client
+    }
+
+    private void BroadcastGlobalState()
+    {
+        string stateData = SerializeGlobalState();
+
+        lock (connectedClients)
         {
-            room.UpdateState(key, value); // Cập nhật trạng thái của phòng
+            foreach (TcpClient client in connectedClients)
+            {
+                try
+                {
+                    NetworkStream stream = client.GetStream();
+                    byte[] data = Encoding.UTF8.GetBytes(stateData);
+                    stream.Write(data, 0, data.Length);
+                    Debug.Log($"Broadcasted state: {stateData}");
+                }
+                catch (SocketException ex)
+                {
+                    Debug.LogError($"Error broadcasting to client: {ex.Message}");
+                }
+            }
         }
-        else
+    }
+
+
+    private string SerializeGlobalState()
+    {
+        StringBuilder sb = new StringBuilder();
+        foreach (var entry in globalGameState)
         {
-            Debug.LogWarning($"Room {roomID} not found for state update!");
+            sb.Append($"{entry.Key}:{entry.Value}|");
         }
+        return sb.ToString().TrimEnd('|');
     }
 
     void OnApplicationQuit()

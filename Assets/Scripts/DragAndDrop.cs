@@ -166,15 +166,12 @@ public class DragAndDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler
     {
         if (ConnectionManager.subServerClient != null && ConnectionManager.subServerClient.Connected)
         {
-            string message = $"Drag|{itemName}|{position.x}|{position.y}";
+            string message = $"UpdateState|Hotpot|{itemName}|{position.x},{position.y}";
             NetworkStream stream = ConnectionManager.subServerClient.GetStream();
             byte[] data = Encoding.UTF8.GetBytes(message);
             stream.Write(data, 0, data.Length);
             Debug.Log($"Sent drag data to SubServer: {message}");
         }
-        else
-        {
-            Debug.LogError("Not connected to SubServer. Cannot send drag data.");
-        }
     }
+
 }
