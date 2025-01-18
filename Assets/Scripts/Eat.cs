@@ -24,7 +24,7 @@ public class Eat: MonoBehaviour, IDropHandler
     {
         if (ConnectionManager.subServerClient != null && ConnectionManager.subServerClient.Connected)
         {
-            string message = $"Eat|{itemName}";
+            string message = $"UpdateState|Hotpot|{itemName}|Eaten";
             NetworkStream stream = ConnectionManager.subServerClient.GetStream();
             byte[] data = Encoding.UTF8.GetBytes(message);
             stream.Write(data, 0, data.Length);

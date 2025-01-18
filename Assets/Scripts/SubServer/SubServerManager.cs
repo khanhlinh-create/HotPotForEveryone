@@ -12,6 +12,7 @@ public class SubServerManager : MonoBehaviour
     private bool isServerRunning = false;
     private List<Room> rooms = new List<Room>();
     private Dictionary<string, string> globalGameState = new Dictionary<string, string>(); // Trạng thái toàn cục (VD: nồi lẩu và đĩa ăn)
+    private List<TcpClient> connectedClients = new List<TcpClient>();
 
     public string masterServerIP = "127.0.0.1"; // Địa chỉ IP của Master Server
     public int masterServerPort = 5000;        // Cổng của Master Server
@@ -70,6 +71,10 @@ public class SubServerManager : MonoBehaviour
             {
                 // Chấp nhận Client kết nối
                 TcpClient client = server.AcceptTcpClient();
+                lock (connectedClients)
+                {
+                    connectedClients.Add(client); // Thêm client vào danh sách
+                }
                 Debug.Log("Client connected!");
 
                 // Tạo một luồng để xử lý Client này
@@ -137,13 +142,17 @@ public class SubServerManager : MonoBehaviour
 
                     Debug.Log($"SubServer: Client requested to join room {roomID}. Response: {response}");
                 }
-                //chưa cần xử lý tới...
                 else if (command[0] == "UpdateState")
                 {
-                    string roomID = command[1];
-                    string key = command[2];
-                    string value = command[3];
-                    UpdateRoomState(roomID, key, value);
+                    string itemName = command[1]; // Tên của topping
+                    string position = command[2]; // Vị trí "x,y,z"
+
+                    // Cập nhật trạng thái toàn cục
+                    globalGameState[itemName] = position;
+
+                    // Phát lại trạng thái tới tất cả các client
+                    string broadcastMessage = $"UpdateState|{itemName}|{position}";
+                    BroadcastGlobalState(broadcastMessage);
                 }
             }
             catch (Exception ex)
@@ -229,17 +238,38 @@ public class SubServerManager : MonoBehaviour
         }
     }
 
-    private void UpdateRoomState(string roomID, string key, string value)
+    /*private void UpdateRoomState(string roomID, string key, string value)
     {
-        Room room = rooms.Find(r => r.RoomID == roomID);
-        if (room != null)
+        globalGameState[key] = value; // Cập nhật trạng thái toàn cục
+        BroadcastGlobalState();       // Phát sóng trạng thái tới mọi client
+    }*/
+
+    private void BroadcastGlobalState(string message)
+    {
+        foreach (TcpClient client in connectedClients) // `connectedClients` là danh sách các client đang kết nối
         {
-            room.UpdateState(key, value); // Cập nhật trạng thái của phòng
+            try
+            {
+                NetworkStream stream = client.GetStream();
+                byte[] data = Encoding.UTF8.GetBytes(message);
+                stream.Write(data, 0, data.Length);
+                Debug.Log($"Broadcasted state: {message}");
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Error broadcasting to client: {ex.Message}");
+            }
         }
-        else
+    }
+
+    private string SerializeGlobalState()
+    {
+        StringBuilder sb = new StringBuilder();
+        foreach (var entry in globalGameState)
         {
-            Debug.LogWarning($"Room {roomID} not found for state update!");
+            sb.Append($"{entry.Key}:{entry.Value}|");
         }
+        return sb.ToString().TrimEnd('|');
     }
 
     void OnApplicationQuit()

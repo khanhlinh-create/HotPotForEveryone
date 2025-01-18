@@ -146,8 +146,6 @@ public class ConnectionManager : MonoBehaviour
      kết nối với SubServer quản lý phòng thành công, yêu cầu SubServer cho mình vào phòng*/
     public async void JoinRoomByCode(string roomCode)
     {
-        Debug.Log($"Attempting to join room with code: {roomCode}");
-
         if (subServerClient == null || !subServerClient.Connected)
         {
             Debug.LogError("Not connected to SubServer. Cannot join room.");
@@ -203,7 +201,8 @@ public class ConnectionManager : MonoBehaviour
 
                 string receivedData = Encoding.UTF8.GetString(buffer, 0, bytesRead);
                 Debug.Log($"Received from SubServer: {receivedData}");
-                HandleReceivedData(receivedData);
+                // Phát tín hiệu để cập nhật UI
+                FindFirstObjectByType<ItemsSlot>()?.HandleSlotUpdate(receivedData);
             }
             catch (Exception ex)
             {
@@ -212,17 +211,18 @@ public class ConnectionManager : MonoBehaviour
             }
         }
     }
-    //Nhận dữ liệu liên quan đến phòng
+    //Nhận dữ liệu
     private void HandleReceivedData(string data)
     {
         // Phân loại dữ liệu và chuyển tới các script khác
-        if (data.StartsWith("Room"))
+        if (data.StartsWith("UpdateState"))
         {
-            FindFirstObjectByType<RoomManager>()?.HandleRoomResponse(data);
+            // Gửi dữ liệu tới ItemsSlot để cập nhật giao diện
+            FindFirstObjectByType<ItemsSlot>()?.HandleSlotUpdate(data);
         }
         else
         {
-            UpdateGameState(data);
+            Debug.Log($"Unhandled data received: {data}");
         }
     }
     //Hàm để cập nhập GameState khi nhận các thay đổi từ SubServer 

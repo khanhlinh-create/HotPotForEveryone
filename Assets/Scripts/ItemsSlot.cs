@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.EventSystems;
 using System.Text;
 using System.Net.Sockets;
@@ -32,15 +32,48 @@ public class ItemsSlot : MonoBehaviour, IDropHandler
         }
     }
 
+
     public void HandleSlotUpdate(string data)
     {
         string[] parts = data.Split('|');
-        if (parts.Length >= 3 && parts[0] == "UpdateSlot")
+        if (parts[0] == "UpdateState")
         {
-            string itemName = parts[1];
-            string state = parts[2];
-            Debug.Log($"Slot update received for {itemName}: {state}");
-            // C?p nh?t tr?ng th�i l�n UI n?u c?n
+            string itemName = parts[1]; // Tên của topping
+            string position = parts[2]; // Vị trí dưới dạng "x,y,z"
+
+            // Tìm item dựa trên tên và cập nhật vị trí
+            Transform toppingsParent = GameObject.Find("Canvas/Toppings")?.transform;
+            if (toppingsParent == null)
+            {
+                Debug.LogError("Parent object 'Canvas/Toppings' not found.");
+                return;
+            }
+
+            Transform itemTransform = toppingsParent.Find(itemName);
+            if (itemTransform != null)
+            {
+                // Parse vị trí từ dữ liệu nhận được
+                string[] posParts = position.Split(',');
+                if (posParts.Length == 3 &&
+                    float.TryParse(posParts[0], out float x) &&
+                    float.TryParse(posParts[1], out float y) &&
+                    float.TryParse(posParts[2], out float z))
+                {
+                    Vector3 newPosition = new Vector3(x, y, z);
+                    itemTransform.position = newPosition;
+                    Debug.Log($"Updated {itemName} position to: {newPosition}");
+                }
+                else
+                {
+                    Debug.LogError($"Invalid position format: {position}");
+                }
+            }
+            else
+            {
+                Debug.LogError($"Item '{itemName}' not found under 'Canvas/Toppings'.");
+            }
         }
     }
+
+
 }

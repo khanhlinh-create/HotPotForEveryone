@@ -81,14 +81,8 @@ public class RoomManager : MonoBehaviour
         }
 
         // Việc 2: Sau khi kết nối SubServer thành công, gửi yêu cầu tham gia phòng
-        if (ConnectionManager.subServerClient != null && ConnectionManager.subServerClient.Connected)
-        {
-            connectionManager.JoinRoomByCode(roomCode); //client yêu cầu SubServer cho vào phòng 
-        }
-        else
-        {
-            Debug.LogError("Failed to connect to SubServer. Cannot join room.");
-        }
+        // Bỏ qua điều kiện và thực hiện việc 2 ngay sau khi việc 1 hoàn tất
+        connectionManager.JoinRoomByCode(roomCode);
     }
     //Hàm để gửi thông tin cho SubServer 
     private void SendMessageToSubServer(string message)
