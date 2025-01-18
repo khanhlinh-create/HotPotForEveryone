@@ -1,4 +1,4 @@
-/*using UnityEngine;
+using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
@@ -51,4 +51,4 @@ public class RegisterManager : MonoBehaviour
         sqlManager.RegisterUser(username, encryptedPassword);
         messageText.text = "Registration successful!";
     }
-}*/
+}
