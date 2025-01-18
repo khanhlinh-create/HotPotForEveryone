@@ -142,13 +142,17 @@ public class SubServerManager : MonoBehaviour
 
                     Debug.Log($"SubServer: Client requested to join room {roomID}. Response: {response}");
                 }
-                //chưa cần xử lý tới...
                 else if (command[0] == "UpdateState")
                 {
-                    string roomID = command[1];
-                    string key = command[2];
-                    string value = command[3];
-                    UpdateRoomState(roomID, key, value);
+                    string itemName = command[1]; // Tên của topping
+                    string position = command[2]; // Vị trí "x,y,z"
+
+                    // Cập nhật trạng thái toàn cục
+                    globalGameState[itemName] = position;
+
+                    // Phát lại trạng thái tới tất cả các client
+                    string broadcastMessage = $"UpdateState|{itemName}|{position}";
+                    BroadcastGlobalState(broadcastMessage);
                 }
             }
             catch (Exception ex)
@@ -234,35 +238,29 @@ public class SubServerManager : MonoBehaviour
         }
     }
 
-    private void UpdateRoomState(string roomID, string key, string value)
+    /*private void UpdateRoomState(string roomID, string key, string value)
     {
         globalGameState[key] = value; // Cập nhật trạng thái toàn cục
         BroadcastGlobalState();       // Phát sóng trạng thái tới mọi client
-    }
+    }*/
 
-    private void BroadcastGlobalState()
+    private void BroadcastGlobalState(string message)
     {
-        string stateData = SerializeGlobalState();
-
-        lock (connectedClients)
+        foreach (TcpClient client in connectedClients) // `connectedClients` là danh sách các client đang kết nối
         {
-            foreach (TcpClient client in connectedClients)
+            try
             {
-                try
-                {
-                    NetworkStream stream = client.GetStream();
-                    byte[] data = Encoding.UTF8.GetBytes(stateData);
-                    stream.Write(data, 0, data.Length);
-                    Debug.Log($"Broadcasted state: {stateData}");
-                }
-                catch (SocketException ex)
-                {
-                    Debug.LogError($"Error broadcasting to client: {ex.Message}");
-                }
+                NetworkStream stream = client.GetStream();
+                byte[] data = Encoding.UTF8.GetBytes(message);
+                stream.Write(data, 0, data.Length);
+                Debug.Log($"Broadcasted state: {message}");
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Error broadcasting to client: {ex.Message}");
             }
         }
     }
-
 
     private string SerializeGlobalState()
     {

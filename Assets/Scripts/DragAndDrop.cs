@@ -14,7 +14,7 @@ public class DragAndDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler
 
     private RectTransform rectTransform;
     private CanvasGroup canvasGroup;
-    private Vector2 originalPosition;
+    private Vector3 originalPosition;
     public TextMeshProUGUI yumText;
     public string itemName; // Tên của món ăn
     private ConnectionManager connectionManager;
@@ -162,15 +162,19 @@ public class DragAndDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler
         yumText.gameObject.SetActive(false);
     }
 
-    private void SendDragDataToSubServer(string itemName, Vector2 position)
+    private void SendDragDataToSubServer(string itemName, Vector3 position)
     {
         if (ConnectionManager.subServerClient != null && ConnectionManager.subServerClient.Connected)
         {
-            string message = $"UpdateState|Hotpot|{itemName}|{position.x},{position.y}";
+            string message = $"UpdateState|Hotpot|{itemName}|{position.x},{position.y}, {position.z}";
             NetworkStream stream = ConnectionManager.subServerClient.GetStream();
             byte[] data = Encoding.UTF8.GetBytes(message);
             stream.Write(data, 0, data.Length);
             Debug.Log($"Sent drag data to SubServer: {message}");
+        }
+        else
+        {
+            Debug.LogError("Not connected to SubServer. Cannot send drag data.");
         }
     }
 
